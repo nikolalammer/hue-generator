@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { createClient } from '@supabase/supabase-js'
 import './App.css'
 
@@ -89,6 +90,7 @@ export default function App() {
   return (
     <div className="container">
       <header className="header">
+        <Link to="/dashboard" className="dashboard-link">Dashboard</Link>
         <h1>HUE-Generator</h1>
         <p>KI-generierte Hausübungen für die Mittelschule</p>
       </header>
