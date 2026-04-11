@@ -9,6 +9,8 @@ const FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generier
 export default function App() {
   const [fach, setFach] = useState('Deutsch')
   const [thema, setThema] = useState('')
+  // Aufgabentyp: mc | lueckentext | gemischt
+  const [aufgabentyp, setAufgabentyp] = useState('mc')
   // ergebnis enthält jetzt { id, text, fragen } – id ist die UUID der gespeicherten HÜ
   const [ergebnis, setErgebnis] = useState(null)
   const [laedt, setLaedt] = useState(false)
@@ -30,7 +32,7 @@ export default function App() {
           'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
-        body: JSON.stringify({ fach, thema }),
+        body: JSON.stringify({ fach, thema, aufgabentyp }),
       })
 
       const data = await res.json()
@@ -109,6 +111,19 @@ export default function App() {
           />
         </div>
 
+        <div className="formfeld">
+          <label htmlFor="aufgabentyp">Aufgabentyp</label>
+          <select
+            id="aufgabentyp"
+            value={aufgabentyp}
+            onChange={(e) => setAufgabentyp(e.target.value)}
+          >
+            <option value="mc">Multiple Choice</option>
+            <option value="lueckentext">Lückentext</option>
+            <option value="gemischt">Gemischt</option>
+          </select>
+        </div>
+
         <button className="generieren-btn" type="submit" disabled={laedt}>
           {laedt ? 'Wird generiert...' : 'HUE generieren'}
         </button>
@@ -149,6 +164,18 @@ export default function App() {
               </ul>
             </div>
           ))}
+
+          {/* Lückentext-Vorschau */}
+          {ergebnis.lueckentexte && ergebnis.lueckentexte.length > 0 && (
+            <>
+              <p className="fragen-titel">Lückentexte (Vorschau)</p>
+              {ergebnis.lueckentexte.map((lt, i) => (
+                <div key={i} className="frage">
+                  <p className="fragetext">{i + 1}. {lt.satz.replace('___', '______')}</p>
+                </div>
+              ))}
+            </>
+          )}
 
           {/* Teilbarer Schüler-Link */}
           <div className="link-box">

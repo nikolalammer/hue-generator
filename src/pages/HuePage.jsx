@@ -16,11 +16,15 @@ export default function HuePage() {
   const [thema, setThema] = useState('')
   const [text, setText] = useState('')
   const [fragen, setFragen] = useState([])
+  // Lückentext-Aufgaben aus aufgaben_json
+  const [lueckentexte, setLueckentexte] = useState([])
 
   // Schüler-Flow
   const [schuelerNummer, setSchuelerNummer] = useState('')
   const [nummerBestaetigt, setNummerBestaetigt] = useState(false)
   const [ausgewaehlt, setAusgewaehlt] = useState([])
+  // Lückentext-Eingaben der Schüler (ein String pro Lückentext)
+  const [lueckenAntworten, setLueckenAntworten] = useState([])
   const [ausgewertet, setAusgewertet] = useState(false)
   const [sendet, setSendet] = useState(false)
   const [speichernFehler, setSpeichernFehler] = useState(null)
@@ -40,12 +44,16 @@ export default function HuePage() {
         return
       }
 
-      // aufgaben_json enthält { text, fragen }
+      // aufgaben_json enthält { text, fragen, lueckentexte? }
       setFach(data.fach || '')
       setThema(data.thema || '')
       setText(data.aufgaben_json.text)
       setFragen(data.aufgaben_json.fragen)
       setAusgewaehlt(new Array(data.aufgaben_json.fragen.length).fill(null))
+      // Lückentexte aus aufgaben_json laden (leer wenn kein Lückentext)
+      const lts = data.aufgaben_json.lueckentexte || []
+      setLueckentexte(lts)
+      setLueckenAntworten(new Array(lts.length).fill(''))
       setLaedt(false)
     }
 
@@ -67,8 +75,14 @@ export default function HuePage() {
     setSendet(true)
     setSpeichernFehler(null)
 
-    const richtig = fragen.filter((f, i) => ausgewaehlt[i] === f.korrekt).length
-    const gesamt = fragen.length
+    // MC-Auswertung
+    const richtigMC = fragen.filter((f, i) => ausgewaehlt[i] === f.korrekt).length
+    // Lückentext-Auswertung: case-insensitive, trim, Umlaute strikt
+    const richtigLT = lueckentexte.filter((lt, i) =>
+      lueckenAntworten[i].trim().toLowerCase() === lt.antwort.trim().toLowerCase()
+    ).length
+    const richtig = richtigMC + richtigLT
+    const gesamt = fragen.length + lueckentexte.length
     const prozent = Math.round((richtig / gesamt) * 100)
 
     // Ergebnis mit hausuebung_id speichern
@@ -189,24 +203,71 @@ export default function HuePage() {
             </div>
           ))}
 
-          {/* Auswerten-Button */}
+          {/* Lückentext-Aufgaben */}
+          {lueckentexte.length > 0 && (
+            <>
+              <p className="fragen-titel">Lückentexte</p>
+              {lueckentexte.map((lt, i) => {
+                const teile = lt.satz.split('___')
+                return (
+                  <div key={i} className="frage lueckentext-frage">
+                    <span className="fragetext">
+                      {teile[0]}
+                      <input
+                        className={[
+                          'luecken-input',
+                          ausgewertet
+                            ? lueckenAntworten[i].trim().toLowerCase() === lt.antwort.trim().toLowerCase()
+                              ? 'korrekt'
+                              : 'falsch'
+                            : '',
+                        ].filter(Boolean).join(' ')}
+                        type="text"
+                        value={lueckenAntworten[i]}
+                        onChange={(e) => {
+                          if (ausgewertet) return
+                          const neu = [...lueckenAntworten]
+                          neu[i] = e.target.value
+                          setLueckenAntworten(neu)
+                        }}
+                        disabled={ausgewertet}
+                        placeholder="Antwort..."
+                        size={Math.max(10, (lt.antwort.length + 4))}
+                      />
+                      {teile[1]}
+                    </span>
+                    {ausgewertet && (
+                      <span className={`luecken-korrektur ${lueckenAntworten[i].trim().toLowerCase() === lt.antwort.trim().toLowerCase() ? 'korrekt' : 'falsch'}`}>
+                        {lueckenAntworten[i].trim().toLowerCase() === lt.antwort.trim().toLowerCase()
+                          ? '✓'
+                          : `✗ Richtig: ${lt.antwort}`}
+                      </span>
+                    )}
+                  </div>
+                )
+              })}
+            </>
+          )}
+
+          {/* Auswerten-Button – auch Lückentexte müssen ausgefüllt sein */}
           <button
             type="button"
             className="auswerten-btn"
             onClick={auswerten}
-            disabled={ausgewertet || sendet || ausgewaehlt.some((a) => a === null)}
+            disabled={ausgewertet || sendet || ausgewaehlt.some((a) => a === null) || lueckenAntworten.some((a) => a.trim() === '')}
           >
             {sendet
               ? 'Wird gespeichert...'
-              : ausgewaehlt.some((a) => a === null)
-                ? `Noch ${ausgewaehlt.filter((a) => a === null).length} Frage(n) offen`
+              : (ausgewaehlt.some((a) => a === null) || lueckenAntworten.some((a) => a.trim() === ''))
+                ? `Noch ${ausgewaehlt.filter((a) => a === null).length + lueckenAntworten.filter((a) => a.trim() === '').length} Aufgabe(n) offen`
                 : 'Auswerten'}
           </button>
 
           {/* Ergebnis-Zusammenfassung */}
           {ausgewertet && (() => {
             const richtig = fragen.filter((f, i) => ausgewaehlt[i] === f.korrekt).length
-            const gesamt = fragen.length
+              + lueckentexte.filter((lt, i) => lueckenAntworten[i].trim().toLowerCase() === lt.antwort.trim().toLowerCase()).length
+            const gesamt = fragen.length + lueckentexte.length
             return (
               <div className={`ergebnis-zusammenfassung ${richtig === gesamt ? 'perfekt' : ''}`}>
                 {richtig === gesamt
