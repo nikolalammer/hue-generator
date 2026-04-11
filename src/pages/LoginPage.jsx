@@ -4,7 +4,7 @@ import supabase from '../lib/supabaseClient'
 import './LoginPage.css'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('lammer.nikola@ms-eberschwang.at')
+  const [email, setEmail] = useState('')
   const [gesendet, setGesendet] = useState(false)
   const [laedt, setLaedt] = useState(false)
   const [fehler, setFehler] = useState(null)
@@ -14,7 +14,13 @@ export default function LoginPage() {
     setLaedt(true)
     setFehler(null)
 
-    const { error } = await supabase.auth.signInWithOtp({ email })
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        // Nach Magic-Link-Klick direkt auf das Dashboard weiterleiten
+        emailRedirectTo: window.location.origin + '/dashboard',
+      },
+    })
 
     if (error) {
       setFehler('Fehler beim Senden des Links: ' + error.message)

@@ -1,0 +1,10 @@
+/* Vollbild-Ladeanzeige während der Session-Prüfung */
+.lade-anzeige {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: system-ui, sans-serif;
+  color: #64748b;
+  font-size: 15px;
+}
