@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { QRCodeCanvas } from 'qrcode.react'
 import './App.css'
 
 // URL der Edge Function
@@ -41,6 +42,16 @@ export default function App() {
     } finally {
       setLaedt(false)
     }
+  }
+
+  // QR-Code als PNG herunterladen via Canvas-Export
+  function qrHerunterladen() {
+    const canvas = document.getElementById('hue-qr-code')
+    if (!canvas) return
+    const link = document.createElement('a')
+    link.download = `hue-${ergebnis.id.substring(0, 8)}.png`
+    link.href = canvas.toDataURL('image/png')
+    link.click()
   }
 
   // Schüler-Link in die Zwischenablage kopieren
@@ -153,6 +164,20 @@ export default function App() {
                 {kopiert ? 'Kopiert!' : 'Kopieren'}
               </button>
             </div>
+          </div>
+
+          {/* QR-Code für Schüler-Zugang */}
+          <div className="qr-box">
+            <p>QR-Code für Schüler</p>
+            <QRCodeCanvas
+              id="hue-qr-code"
+              value={`${window.location.origin}/hue/${ergebnis.id}`}
+              size={256}
+              level="M"
+            />
+            <button className="qr-download-btn" type="button" onClick={qrHerunterladen}>
+              QR-Code als PNG herunterladen
+            </button>
           </div>
         </section>
       )}
