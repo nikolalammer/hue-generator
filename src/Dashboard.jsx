@@ -25,6 +25,7 @@ export default function Dashboard() {
   const [fehler, setFehler] = useState(null)
   const [filterFach, setFilterFach] = useState('Alle')
   const [filterThema, setFilterThema] = useState('')
+  const [filterHueId, setFilterHueId] = useState(null)
   const navigate = useNavigate()
 
   // Abmelden und zur Login-Seite weiterleiten
@@ -55,7 +56,8 @@ export default function Dashboard() {
   const gefiltert = eintraege.filter((e) => {
     const fachPasst = filterFach === 'Alle' || e.fach === filterFach
     const themaPasst = e.thema.toLowerCase().includes(filterThema.toLowerCase())
-    return fachPasst && themaPasst
+    const huePasst = !filterHueId || e.hausuebung_id === filterHueId
+    return fachPasst && themaPasst && huePasst
   })
 
   return (
@@ -98,6 +100,14 @@ export default function Dashboard() {
           />
         </div>
 
+        {/* Aktiver HÜ-Filter als Badge mit Zurücksetzen-Button */}
+        {filterHueId && (
+          <span className="hue-filter-aktiv">
+            HÜ: {filterHueId.substring(0, 8)}...
+            <button onClick={() => setFilterHueId(null)} aria-label="Filter zurücksetzen">×</button>
+          </span>
+        )}
+
         <div className="filter-info">
           {gefiltert.length} Eintrag{gefiltert.length !== 1 ? 'e' : ''}
         </div>
@@ -123,6 +133,7 @@ export default function Dashboard() {
                 <th>Richtig</th>
                 <th>Gesamt</th>
                 <th>Prozent</th>
+                <th>HÜ</th>
               </tr>
             </thead>
             <tbody>
@@ -138,6 +149,14 @@ export default function Dashboard() {
                     <span className={`prozent-badge ${prozentKlasse(e.prozent)}`}>
                       {e.prozent} %
                     </span>
+                  </td>
+                  {/* HÜ-ID: klickbar zum Filtern, zeigt erste 8 Zeichen */}
+                  <td
+                    className="hue-id-zelle"
+                    onClick={() => e.hausuebung_id && setFilterHueId(e.hausuebung_id)}
+                    title={e.hausuebung_id || ''}
+                  >
+                    {e.hausuebung_id ? `${e.hausuebung_id.substring(0, 8)}...` : '–'}
                   </td>
                 </tr>
               ))}

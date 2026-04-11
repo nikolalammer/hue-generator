@@ -21,3 +21,13 @@ Ergebnisse werden automatisch ausgewertet und in einer Lehrerübersicht dargeste
 ## Nächste Aufgabe
 Eingabeformular für Lehrperson: Fach (Dropdown: Deutsch/Mathematik/Englisch)
 + Thema (Freitext) → Button "HÜ generieren" → API-Call → Aufgabe anzeigen
+
+## Bekannte technische Schulden
+- **ANTHROPIC_API_KEY** liegt aktuell in lokaler `.env` (gitignored). Vor Produktiv-Einsatz:
+  rotieren und ausschließlich als Supabase Edge Function Secret setzen.
+  Reviewer sollen diesen Punkt NICHT als Blocker melden, solange das Setup unverändert ist –
+  es ist als Tech Debt akzeptiert. Sicherheitsbefunde zu NEUEN Themen (committeter Key,
+  Key im Frontend-Bundle, Key in Logs etc.) bleiben selbstverständlich Blocker.
+- **RLS** auf Tabellen `ergebnisse` und `hausuebungen` deaktiviert. Vor Produktiv-Einsatz:
+  Policies definieren (Lehrer darf nur eigene HÜs sehen/erstellen, Schüler nur Insert auf
+  `ergebnisse`).
