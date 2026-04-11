@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { QRCodeCanvas } from 'qrcode.react'
 import supabase from './lib/supabaseClient'
 import './Dashboard.css'
 
@@ -26,6 +27,8 @@ export default function Dashboard() {
   const [filterFach, setFilterFach] = useState('Alle')
   const [filterThema, setFilterThema] = useState('')
   const [filterHueId, setFilterHueId] = useState(null)
+  // null = Modal geschlossen, UUID = QR-Code für diese HÜ anzeigen
+  const [qrHueId, setQrHueId] = useState(null)
   const navigate = useNavigate()
 
   // Abmelden und zur Login-Seite weiterleiten
@@ -134,6 +137,7 @@ export default function Dashboard() {
                 <th>Gesamt</th>
                 <th>Prozent</th>
                 <th>HÜ</th>
+                <th>QR</th>
               </tr>
             </thead>
             <tbody>
@@ -158,10 +162,38 @@ export default function Dashboard() {
                   >
                     {e.hausuebung_id ? `${e.hausuebung_id.substring(0, 8)}...` : '–'}
                   </td>
+                  <td>
+                    {e.hausuebung_id && (
+                      <button
+                        className="qr-zeigen-btn"
+                        type="button"
+                        onClick={() => setQrHueId(e.hausuebung_id)}
+                      >
+                        QR
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* QR-Code Modal */}
+      {qrHueId && (
+        <div className="modal-overlay" onClick={() => setQrHueId(null)}>
+          <div className="modal-inhalt" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-schliessen" onClick={() => setQrHueId(null)}>×</button>
+            <p>Schüler-Link QR-Code</p>
+            <QRCodeCanvas
+              id="dashboard-qr-code"
+              value={`${window.location.origin}/hue/${qrHueId}`}
+              size={200}
+              level="M"
+            />
+            <p className="modal-link-text">/hue/{qrHueId.substring(0, 8)}...</p>
+          </div>
         </div>
       )}
     </div>
