@@ -6,6 +6,7 @@ import App from './App.jsx'
 import Dashboard from './Dashboard.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
+import HuePage from './pages/HuePage.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -16,6 +17,9 @@ createRoot(document.getElementById('root')).render(
 
         {/* Anmeldeseite für Lehrpersonen */}
         <Route path="/login" element={<LoginPage />} />
+
+        {/* Schüler-Ansicht – HÜ per Link abrufen und lösen */}
+        <Route path="/hue/:id" element={<HuePage />} />
 
         {/* Lehrer-Dashboard – nur für angemeldete Nutzer */}
         <Route

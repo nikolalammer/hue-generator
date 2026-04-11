@@ -125,7 +125,36 @@ Rufe das Tool "hausaufgabe_erstellen" mit den Inhalten auf.`;
     // toolResult.input ist bereits ein JS-Objekt – kein JSON.parse nötig
     const hausübung = toolResult.input;
 
-    return new Response(JSON.stringify(hausübung), {
+    // HÜ in Supabase speichern – SUPABASE_URL und SUPABASE_SERVICE_ROLE_KEY
+    // sind in Edge Functions automatisch verfügbar
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    const dbRes = await fetch(`${supabaseUrl}/rest/v1/hausuebungen`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': supabaseServiceKey,
+        'Authorization': `Bearer ${supabaseServiceKey}`,
+        'Prefer': 'return=representation',
+      },
+      body: JSON.stringify({
+        fach,
+        thema,
+        aufgaben_json: hausübung,
+      }),
+    });
+
+    if (!dbRes.ok) {
+      const dbFehler = await dbRes.text();
+      console.error('Supabase Speicher-Fehler:', dbFehler);
+      throw new Error('HÜ konnte nicht gespeichert werden.');
+    }
+
+    const [gespeichert] = await dbRes.json();
+
+    // ID + generierte Daten zurückgeben
+    return new Response(JSON.stringify({ ...hausübung, id: gespeichert.id }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
