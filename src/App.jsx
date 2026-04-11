@@ -1,13 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { createClient } from '@supabase/supabase-js'
+import supabase from './lib/supabaseClient'
 import './App.css'
-
-// Supabase-Client (Anon-Key ist sicher im Frontend verwendbar)
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-)
 
 // URL der Edge Function
 const FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generiere-hue`

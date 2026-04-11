@@ -4,13 +4,28 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
 import Dashboard from './Dashboard.jsx'
+import LoginPage from './pages/LoginPage.jsx'
+import ProtectedRoute from './components/ProtectedRoute.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
+        {/* Schüler-App – öffentlich zugänglich */}
         <Route path="/" element={<App />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+
+        {/* Anmeldeseite für Lehrpersonen */}
+        <Route path="/login" element={<LoginPage />} />
+
+        {/* Lehrer-Dashboard – nur für angemeldete Nutzer */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   </StrictMode>,

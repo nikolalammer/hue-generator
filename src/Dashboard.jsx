@@ -1,12 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { createClient } from '@supabase/supabase-js'
+import { Link, useNavigate } from 'react-router-dom'
+import supabase from './lib/supabaseClient'
 import './Dashboard.css'
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-)
 
 // Prozent-Farbe: grün ab 75%, gelb ab 50%, rot darunter
 function prozentKlasse(prozent) {
@@ -30,6 +25,13 @@ export default function Dashboard() {
   const [fehler, setFehler] = useState(null)
   const [filterFach, setFilterFach] = useState('Alle')
   const [filterThema, setFilterThema] = useState('')
+  const navigate = useNavigate()
+
+  // Abmelden und zur Login-Seite weiterleiten
+  async function abmelden() {
+    await supabase.auth.signOut()
+    navigate('/login')
+  }
 
   useEffect(() => {
     async function laden() {
@@ -63,7 +65,10 @@ export default function Dashboard() {
           <h1>Lehrer-Dashboard</h1>
           <p>Übersicht aller abgegebenen Hausübungen</p>
         </div>
-        <Link to="/" className="zurueck-link">← Zurück</Link>
+        <div className="dashboard-header-aktionen">
+          <Link to="/" className="zurueck-link">← Zurück</Link>
+          <button onClick={abmelden} className="abmelden-btn">Abmelden</button>
+        </div>
       </header>
 
       {/* Filter */}

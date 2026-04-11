@@ -26,6 +26,14 @@
   font-size: 14px;
 }
 
+/* Aktions-Gruppe rechts im Header (Zurück-Link + Abmelden) */
+.dashboard-header-aktionen {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
 .zurueck-link {
   font-size: 14px;
   color: #4f46e5;
@@ -36,6 +44,26 @@
 
 .zurueck-link:hover {
   text-decoration: underline;
+}
+
+/* Abmelden-Button */
+.abmelden-btn {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  background: transparent;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+
+.abmelden-btn:hover {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fca5a5;
 }
 
 /* Filter-Leiste */
