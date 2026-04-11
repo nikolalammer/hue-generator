@@ -258,3 +258,50 @@
   border-color: #86efac;
   color: #166534;
 }
+
+/* Lückentext-Aufgaben */
+.lueckentext-frage {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.luecken-input {
+  display: inline-block;
+  padding: 0.2rem 0.4rem;
+  border: 2px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+  margin: 0 0.25rem;
+  transition: border-color 0.2s;
+}
+
+.luecken-input:focus {
+  outline: none;
+  border-color: #1a56db;
+}
+
+.luecken-input.korrekt {
+  border-color: #16a34a;
+  background: #f0fdf4;
+}
+
+.luecken-input.falsch {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
+.luecken-korrektur {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
+}
+
+.luecken-korrektur.korrekt {
+  color: #16a34a;
+}
+
+.luecken-korrektur.falsch {
+  color: #dc2626;
+}

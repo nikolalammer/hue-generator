@@ -11,9 +11,10 @@ const corsHeaders = {
 };
 
 // Tool-Definition erzwingt strukturiertes JSON – kein Markdown möglich
+// Unterstützt MC-Fragen, Lückentexte und gemischte Aufgaben
 const HAUSÜBUNG_TOOL = {
   name: 'hausaufgabe_erstellen',
-  description: 'Erstellt eine Hausübung mit Lesetext und Multiple-Choice-Fragen für österreichische Mittelschüler.',
+  description: 'Erstellt eine Hausübung für österreichische Mittelschüler.',
   input_schema: {
     type: 'object',
     properties: {
@@ -23,26 +24,37 @@ const HAUSÜBUNG_TOOL = {
       },
       fragen: {
         type: 'array',
-        description: 'Genau 3 Multiple-Choice-Fragen.',
+        description: 'Multiple-Choice-Fragen (leer wenn Typ "lueckentext").',
         items: {
           type: 'object',
           properties: {
-            frage: { type: 'string', description: 'Die Fragestellung.' },
-            antworten: {
-              type: 'array',
-              description: 'Genau 4 Antwortmöglichkeiten.',
-              items: { type: 'string' },
-            },
-            korrekt: {
-              type: 'integer',
-              description: 'Index (0-3) der richtigen Antwort.',
-            },
+            frage: { type: 'string' },
+            antworten: { type: 'array', items: { type: 'string' } },
+            korrekt: { type: 'integer', description: 'Index 0-3 der richtigen Antwort.' },
           },
           required: ['frage', 'antworten', 'korrekt'],
         },
       },
+      lueckentexte: {
+        type: 'array',
+        description: 'Lückentext-Aufgaben (leer wenn Typ "mc").',
+        items: {
+          type: 'object',
+          properties: {
+            satz: {
+              type: 'string',
+              description: 'Satz mit genau einer Lücke markiert als ___.',
+            },
+            antwort: {
+              type: 'string',
+              description: 'Erwartete Antwort (case-insensitiv verglichen, Umlaute strikt).',
+            },
+          },
+          required: ['satz', 'antwort'],
+        },
+      },
     },
-    required: ['text', 'fragen'],
+    required: ['text', 'fragen', 'lueckentexte'],
   },
 };
 
@@ -53,7 +65,8 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { fach, thema } = await req.json();
+    // aufgabentyp: "mc" | "lueckentext" | "gemischt", default "mc"
+    const { fach, thema, aufgabentyp = 'mc' } = await req.json();
 
     if (!fach || !thema) {
       return new Response(
@@ -70,6 +83,13 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // Aufgabentyp-spezifische Anweisung
+    const typAnweisung = aufgabentyp === 'mc'
+      ? 'Erstelle genau 3 Multiple-Choice-Fragen (fragen) und 0 Lückentexte (lueckentexte als leeres Array).'
+      : aufgabentyp === 'lueckentext'
+        ? 'Erstelle 0 Multiple-Choice-Fragen (fragen als leeres Array) und genau 3 Lückentext-Aufgaben (lueckentexte). Jeder Satz enthält genau eine Lücke als ___.'
+        : 'Erstelle 2 Multiple-Choice-Fragen (fragen) und 2 Lückentext-Aufgaben (lueckentexte). Jeder Lückentext-Satz enthält genau eine Lücke als ___.';
+
     // Prompt – österreichischer Lehrplan, Fachbegriffe explizit vorgegeben
     const prompt = `Erstelle eine Hausübung für österreichische Mittelschüler (AHS/NMS) im Fach "${fach}" zum Thema "${thema}".
 
@@ -79,10 +99,11 @@ Deno.serve(async (req: Request) => {
 - Englisch: britisches Englisch nach österreichischem Lehrplan
 - Rechtschreibung: Österreichisches Wörterbuch (ÖWB)
 
-Regeln:
-- Lesetext: 5-8 Sätze, altersgerecht (10-14 Jahre)
-- Genau 3 Fragen, jede mit genau 4 Antwortmöglichkeiten
-- "korrekt" ist der Index (0-3) der richtigen Antwort
+${typAnweisung}
+
+Lesetext: 5-8 Sätze, altersgerecht (10-14 Jahre).
+MC-Fragen: je genau 4 Antwortmöglichkeiten, "korrekt" ist der Index (0-3) der richtigen Antwort.
+Lückentexte: Satz mit ___ als Lücke, "antwort" ist das erwartete Wort/die erwartete Phrase.
 
 Rufe das Tool "hausaufgabe_erstellen" mit den Inhalten auf.`;
 
