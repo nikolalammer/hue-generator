@@ -18,7 +18,13 @@ export default function AutoGrowTextarea({ value, onChange, placeholder, id, req
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault()
       const form = ref.current?.closest('form')
-      if (form) form.requestSubmit()
+      if (!form) return
+      // requestSubmit() führt HTML5-Validierung aus (Safari <16 kennt es nicht)
+      if (typeof form.requestSubmit === 'function') {
+        form.requestSubmit()
+      } else {
+        form.submit()
+      }
     }
   }
 

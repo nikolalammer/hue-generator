@@ -146,7 +146,7 @@ export default function App() {
         </div>
 
         <button className="generieren-btn" type="submit" disabled={laedt}>
-          {laedt ? 'Wird generiert...' : 'HUE generieren'}
+          {laedt ? 'Wird generiert...' : 'Hausübung generieren'}
         </button>
       </form>
 

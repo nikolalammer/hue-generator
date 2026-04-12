@@ -100,6 +100,8 @@ export default function VorschauEditor({ ergebnis, fach: _fach, thema: _thema, o
 
   // --- Speichern: Supabase update() ---
   async function speichern() {
+    // Guard: kein Doppel-Submit, kein nochmaliges Schreiben nach Erfolg
+    if (speichert || gespeichert) return
     setSpeichert(true)
     setFehler(null)
 
