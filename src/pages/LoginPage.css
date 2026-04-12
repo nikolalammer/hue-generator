@@ -31,20 +31,25 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
-  background: var(--primary-50);
-  border-radius: var(--radius-md);
+  width: 68px;
+  height: 68px;
+  background: linear-gradient(135deg, var(--primary-100), var(--primary-50));
+  border: 2px solid var(--primary-200);
+  border-radius: var(--radius-lg);
   margin-bottom: var(--space-4);
-  font-size: 26px;
+  font-size: 34px;
   line-height: 1;
 }
 
 .login-titel {
   font-family: var(--font-heading);
-  font-size: var(--text-2xl);
-  font-weight: 600;
-  color: var(--text-heading);
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  background: linear-gradient(135deg, #D97706 20%, #EA580C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: var(--primary-700);
   margin: 0 0 var(--space-1);
 }
 
