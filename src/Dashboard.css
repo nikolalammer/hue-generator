@@ -48,7 +48,7 @@
   flex-shrink: 0;
 }
 
-/* Zurück-Link als Secondary-Button */
+/* Zurück-Link als Secondary-Button – Teal-Outline */
 .zurueck-link {
   display: inline-flex;
   align-items: center;
@@ -56,8 +56,8 @@
   font-family: var(--font-sans);
   font-size: var(--text-sm);
   font-weight: 500;
-  color: var(--primary-500) !important;
-  border: 1.5px solid var(--primary-500);
+  color: var(--secondary-500) !important;
+  border: 1.5px solid var(--secondary-500);
   border-radius: var(--radius-md);
   text-decoration: none !important;
   white-space: nowrap;
@@ -65,7 +65,7 @@
 }
 
 .zurueck-link:hover {
-  background: var(--primary-50);
+  background: var(--secondary-50);
   transform: translateY(-1px);
 }
 
@@ -148,7 +148,7 @@
 .filter-feld select:focus,
 .filter-feld input[type='text']:focus {
   border-color: var(--primary-500);
-  box-shadow: 0 0 0 3px rgba(45, 125, 123, 0.12);
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.12);
 }
 
 .filter-feld input[type='text']::placeholder {
@@ -164,18 +164,18 @@
   white-space: nowrap;
 }
 
-/* Aktiver HÜ-Filter als Pill */
+/* Aktiver HÜ-Filter als Pill – Teal */
 .hue-filter-aktiv {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-1) var(--space-3);
-  background: var(--primary-50);
-  border: 1px solid var(--primary-200);
+  background: var(--secondary-50);
+  border: 1px solid var(--secondary-200);
   border-radius: var(--radius-full);
   font-size: var(--text-xs);
   font-weight: 500;
-  color: var(--primary-700);
+  color: var(--secondary-700);
   align-self: flex-end;
   margin-bottom: var(--space-2);
 }
@@ -187,13 +187,13 @@
   font-size: var(--text-base);
   line-height: 1;
   padding: 0;
-  color: var(--primary-500);
+  color: var(--secondary-500);
   display: flex;
   align-items: center;
 }
 
 .hue-filter-aktiv button:hover {
-  color: var(--primary-700);
+  color: var(--secondary-700);
 }
 
 /* ============================================================
@@ -337,33 +337,27 @@
   font-size: var(--text-xs);
   font-weight: 600;
   white-space: nowrap;
-}
-
-/* Deutsch = Lila */
-.fach-badge[data-fach='Deutsch'],
-.fach-badge--deutsch {
-  background: #EDE9FE;
-  color: #5B21B6;
-}
-
-/* Mathematik = Blau */
-.fach-badge[data-fach='Mathematik'],
-.fach-badge--mathematik {
-  background: #DBEAFE;
-  color: #1E40AF;
-}
-
-/* Englisch = Orange/Bernstein */
-.fach-badge[data-fach='Englisch'],
-.fach-badge--englisch {
-  background: var(--accent-100);
-  color: var(--accent-700);
-}
-
-/* Fallback für unbekannte Fächer */
-.fach-badge {
+  /* Fallback für unbekannte Fächer */
   background: var(--neutral-100);
   color: var(--neutral-600);
+}
+
+/* Deutsch = warm Lila */
+.fach-badge--deutsch {
+  background: #FAE8FF;
+  color: #9333EA;
+}
+
+/* Mathematik = Tiefblau */
+.fach-badge--mathematik {
+  background: #DBEAFE;
+  color: #2563EB;
+}
+
+/* Englisch = Koralle */
+.fach-badge--englisch {
+  background: #FFEDD5;
+  color: #EA580C;
 }
 
 /* ============================================================
@@ -406,7 +400,7 @@
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   cursor: pointer;
-  color: var(--primary-500);
+  color: var(--secondary-500);
 }
 
 .hue-id-zelle:hover {

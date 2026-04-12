@@ -91,7 +91,7 @@
 
 .login-formfeld input[type='email']:focus {
   border-color: var(--primary-500);
-  box-shadow: 0 0 0 3px rgba(45, 125, 123, 0.12);
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.12);
 }
 
 /* Login-Button – volle Breite, Primary */
@@ -106,7 +106,7 @@
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
-  box-shadow: 0 1px 4px rgba(45,125,123,0.2);
+  box-shadow: 0 1px 4px rgba(217,119,6,0.2);
   transition:
     background var(--transition),
     transform var(--transition),
@@ -116,7 +116,7 @@
 .login-btn:hover:not(:disabled) {
   background: var(--primary-600);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(45,125,123,0.3);
+  box-shadow: 0 4px 12px rgba(217,119,6,0.3);
 }
 
 .login-btn:disabled {
