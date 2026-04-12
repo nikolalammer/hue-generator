@@ -593,3 +593,13 @@
   border-color: var(--erfolg-border);
   color: var(--erfolg);
 }
+
+/* Animationen für Nutzer mit Bewegungsempfindlichkeit deaktivieren */
+@media (prefers-reduced-motion: reduce) {
+  .ergebnis-prozent,
+  .ergebnis-zusammenfassung,
+  .ergebnis-zusammenfassung-wrapper.perfekt::before,
+  .ergebnis-zusammenfassung-wrapper.perfekt::after {
+    animation: none;
+  }
+}
