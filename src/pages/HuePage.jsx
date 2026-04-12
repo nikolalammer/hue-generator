@@ -167,8 +167,6 @@ export default function HuePage() {
       {/* Schritt 2: Hausübung lösen */}
       {nummerBestaetigt && (
         <section className="ergebnis">
-          <h2>{fach} – {thema}</h2>
-
           {/* Lesetext */}
           <div className="lesetext">
             <strong>Lesetext</strong>
@@ -278,7 +276,7 @@ export default function HuePage() {
             const prozent = Math.round((richtig / gesamt) * 100)
             const istPerfekt = richtig === gesamt
             return (
-              <div className="ergebnis-zusammenfassung-wrapper">
+              <div className={`ergebnis-zusammenfassung-wrapper ${istPerfekt ? 'perfekt' : ''}`}>
                 <div className={`ergebnis-prozent ${istPerfekt ? 'perfekt' : ''}`}>
                   {prozent} %
                 </div>
