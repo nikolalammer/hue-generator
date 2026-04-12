@@ -3,8 +3,26 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: var(--space-3);
   min-height: 100vh;
-  font-family: system-ui, sans-serif;
-  color: #64748b;
-  font-size: 15px;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+/* Kleiner Spinner für den Übergangsmoment */
+.lade-anzeige::before {
+  content: '';
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--primary-100);
+  border-top-color: var(--primary-500);
+  border-radius: 50%;
+  animation: drehen 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes drehen {
+  to { transform: rotate(360deg); }
 }
