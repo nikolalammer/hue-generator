@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { QRCodeCanvas } from 'qrcode.react'
+import AutoGrowTextarea from './components/AutoGrowTextarea'
 import './App.css'
 
 // URL der Edge Function
@@ -105,10 +106,9 @@ export default function App() {
 
         <div className="formfeld">
           <label htmlFor="thema">Thema</label>
-          <input
+          <AutoGrowTextarea
             id="thema"
-            type="text"
-            placeholder="z. B. Adjektive, Bruchrechnung, Simple Past"
+            placeholder="z.B. Adjektive – Steigerung und Vergleich"
             value={thema}
             onChange={(e) => setThema(e.target.value)}
             required

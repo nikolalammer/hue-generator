@@ -146,9 +146,35 @@
 }
 
 .formfeld select:focus,
-.formfeld input[type='text']:focus {
+.formfeld input[type='text']:focus,
+.auto-grow-textarea:focus {
   border-color: var(--primary-500);
   box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.12);
+}
+
+/* Auto-wachsende Textarea – selbe Stile wie Input */
+.auto-grow-textarea {
+  width: 100%;
+  min-height: 44px;
+  max-height: calc(var(--text-base) * 1.5 * 8 + 20px); /* ca. 8 Zeilen */
+  padding: 10px 14px;
+  font-size: var(--text-base);
+  font-family: var(--font-sans);
+  color: var(--text-heading);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  outline: none;
+  resize: none;
+  overflow-y: auto;
+  line-height: 1.5;
+  box-sizing: border-box;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  display: block;
+}
+
+.auto-grow-textarea::placeholder {
+  color: var(--neutral-400);
 }
 
 .formfeld input[type='text']::placeholder {
