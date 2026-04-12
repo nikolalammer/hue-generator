@@ -270,7 +270,7 @@ export default function HuePage() {
                 : 'Auswerten'}
           </button>
 
-          {/* Ergebnis-Zusammenfassung – großes Prozent-Badge */}
+          {/* Ergebnis-Zusammenfassung – Prozent-Badge + Originaltext */}
           {ausgewertet && (() => {
             const richtig = fragen.filter((f, i) => ausgewaehlt[i] === f.korrekt).length
               + lueckentexte.filter((lt, i) => lueckenAntworten[i].trim().toLowerCase() === lt.antwort.trim().toLowerCase()).length
@@ -279,10 +279,13 @@ export default function HuePage() {
             const istPerfekt = richtig === gesamt
             return (
               <div className="ergebnis-zusammenfassung-wrapper">
+                <div className={`ergebnis-prozent ${istPerfekt ? 'perfekt' : ''}`}>
+                  {prozent} %
+                </div>
                 <div className={`ergebnis-zusammenfassung ${istPerfekt ? 'perfekt' : ''}`}>
                   {istPerfekt
                     ? `Perfekt! Alle ${gesamt} Fragen richtig!`
-                    : `${richtig} von ${gesamt} Fragen richtig – ${prozent} %`}
+                    : `${richtig} von ${gesamt} Fragen richtig`}
                 </div>
               </div>
             )

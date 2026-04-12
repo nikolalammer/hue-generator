@@ -437,38 +437,17 @@
 /* ============================================================
    Ergebnis-Zusammenfassung – großes Prozent-Badge
    ============================================================ */
-.ergebnis-bereich {
-  margin-top: var(--space-8);
+
+/* Wrapper: Badge oben, Textzeile darunter, zentriert */
+.ergebnis-zusammenfassung-wrapper {
+  margin-top: var(--space-6);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-4);
-  padding: var(--space-8) var(--space-6);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  text-align: center;
 }
 
-.ergebnis-zusammenfassung {
-  margin-top: var(--space-6);
-  padding: var(--space-5) var(--space-6);
-  background: var(--warnung-hell);
-  border: 1px solid var(--warnung-border);
-  border-radius: var(--radius-md);
-  font-size: var(--text-lg);
-  font-weight: 600;
-  text-align: center;
-  color: var(--accent-700);
-}
-
-.ergebnis-zusammenfassung.perfekt {
-  background: var(--erfolg-hell);
-  border-color: var(--erfolg-border);
-  color: var(--erfolg);
-}
-
+/* Kreisförmiges Prozent-Badge */
 .ergebnis-prozent {
   display: inline-flex;
   align-items: center;
@@ -490,13 +469,21 @@
   color: var(--erfolg);
 }
 
-.ergebnis-nachricht {
-  font-size: var(--text-lg);
-  font-weight: 500;
-  color: var(--text-heading);
+/* Textzeile mit Originalinhalt */
+.ergebnis-zusammenfassung {
+  padding: var(--space-4) var(--space-5);
+  background: var(--warnung-hell);
+  border: 1px solid var(--warnung-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
+  font-weight: 600;
+  text-align: center;
+  color: var(--accent-700);
+  width: 100%;
 }
 
-.ergebnis-detail {
-  font-size: var(--text-sm);
-  color: var(--text-muted);
+.ergebnis-zusammenfassung.perfekt {
+  background: var(--erfolg-hell);
+  border-color: var(--erfolg-border);
+  color: var(--erfolg);
 }
