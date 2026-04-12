@@ -79,9 +79,11 @@ export default function App() {
   return (
     <div className="container">
       <header className="header">
-        <Link to="/dashboard" className="dashboard-link">Dashboard</Link>
-        <h1>Aufgabolino</h1>
-        <p>KI-Hausübungen für die Mittelschule</p>
+        <div className="header-mitte">
+          <h1>Aufgabolino</h1>
+          <p>KI-Hausübungen für die Mittelschule</p>
+        </div>
+        <Link to="/dashboard" className="dashboard-link">Dashboard →</Link>
       </header>
 
       {/* Schritt 1: Hausübung generieren */}

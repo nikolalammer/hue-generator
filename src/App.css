@@ -17,19 +17,25 @@
 }
 
 /* ============================================================
-   Hero-Header
+   Hero-Header – Flexbox: Textblock zentriert, Button rechts oben
    ============================================================ */
 .header {
-  position: relative;
-  text-align: center;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
   margin-bottom: var(--space-8);
-  padding-top: var(--space-8);
+  padding-top: var(--space-6);
+}
+
+/* Textblock zentriert im verfügbaren Raum */
+.header-mitte {
+  flex: 1;
+  text-align: center;
 }
 
 .dashboard-link {
-  position: absolute;
-  top: 0;
-  right: 0;
+  flex-shrink: 0;
   /* Sekundärakzent: Teal-Outline */
   padding: var(--space-2) var(--space-4);
   font-family: var(--font-sans);
@@ -44,6 +50,9 @@
     background var(--transition),
     transform var(--transition);
   white-space: nowrap;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .dashboard-link:hover {
@@ -61,6 +70,20 @@
 }
 
 @media (max-width: 480px) {
+  .header {
+    flex-wrap: wrap;
+  }
+  .header-mitte {
+    order: 1;
+    width: 100%;
+    text-align: center;
+  }
+  .dashboard-link {
+    order: 0;
+    margin-left: auto;
+    font-size: var(--text-xs);
+    padding: var(--space-1) var(--space-3);
+  }
   .header h1 {
     font-size: var(--text-2xl);
   }
