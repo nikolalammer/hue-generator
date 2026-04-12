@@ -75,10 +75,11 @@
   box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.12);
 }
 
-/* Frageblock – weiße Card mit Schatten */
+/* Frageblock – Card mit Bernstein-Akzentlinie links */
 .editor-frageblock {
   background: var(--surface);
   border: 1px solid var(--border);
+  border-left: 3px solid var(--primary-300);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   padding: var(--space-6);
@@ -145,10 +146,11 @@
   text-align: center;
 }
 
-/* Lückentext-Block */
+/* Lückentext-Block – Teal-Akzentlinie links */
 .editor-lueckentext-block {
   background: var(--surface);
   border: 1px solid var(--border);
+  border-left: 3px solid var(--secondary-300);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   padding: var(--space-6);

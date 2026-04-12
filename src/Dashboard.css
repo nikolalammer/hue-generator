@@ -342,22 +342,25 @@
   color: var(--neutral-600);
 }
 
-/* Deutsch = warm Lila */
+/* Deutsch = gesättigtes Lila */
 .fach-badge--deutsch {
-  background: #FAE8FF;
-  color: #9333EA;
+  background: #E9D5FF;
+  color: #6B21A8;
+  font-weight: 700;
 }
 
-/* Mathematik = Tiefblau */
+/* Mathematik = kräftiges Blau */
 .fach-badge--mathematik {
-  background: #DBEAFE;
-  color: #2563EB;
+  background: #BFDBFE;
+  color: #1E40AF;
+  font-weight: 700;
 }
 
-/* Englisch = Koralle */
+/* Englisch = warmes Orange */
 .fach-badge--englisch {
-  background: #FFEDD5;
-  color: #EA580C;
+  background: #FED7AA;
+  color: #9A3412;
+  font-weight: 700;
 }
 
 /* ============================================================
