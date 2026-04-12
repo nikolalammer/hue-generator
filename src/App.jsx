@@ -80,8 +80,8 @@ export default function App() {
     <div className="container">
       <header className="header">
         <Link to="/dashboard" className="dashboard-link">Dashboard</Link>
-        <h1>HUE-Generator</h1>
-        <p>KI-generierte Hausübungen für die Mittelschule</p>
+        <h1>Aufgabolino</h1>
+        <p>KI-Hausübungen für die Mittelschule</p>
       </header>
 
       {/* Schritt 1: Hausübung generieren */}

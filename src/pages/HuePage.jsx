@@ -139,7 +139,7 @@ export default function HuePage() {
   return (
     <div className="hue-container">
       <header className="hue-header">
-        <h1>HUE-Generator</h1>
+        <h1>Aufgabolino</h1>
         <p>{fach} – {thema}</p>
       </header>
 

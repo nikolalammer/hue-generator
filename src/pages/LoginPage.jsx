@@ -37,7 +37,7 @@ export default function LoginPage() {
         {/* Branding */}
         <div className="login-brand">
           <span className="login-brand-icon" aria-hidden="true">📚</span>
-          <h1 className="login-titel">HÜ-Generator</h1>
+          <h1 className="login-titel">Aufgabolino</h1>
           <p className="login-untertitel">Lehrer-Login</p>
         </div>
 
