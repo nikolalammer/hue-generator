@@ -11,6 +11,8 @@ export default function App() {
   const [thema, setThema] = useState('')
   // Aufgabentyp: mc | lueckentext | gemischt
   const [aufgabentyp, setAufgabentyp] = useState('mc')
+  // Umfang: kurz (~3 Aufgaben) | mittel (~5) | lang (~8)
+  const [umfang, setUmfang] = useState('mittel')
   // ergebnis enthält { id, text, fragen, lueckentexte } – id ist die UUID der gespeicherten HÜ
   const [ergebnis, setErgebnis] = useState(null)
   const [laedt, setLaedt] = useState(false)
@@ -32,7 +34,7 @@ export default function App() {
           'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
-        body: JSON.stringify({ fach, thema, aufgabentyp }),
+        body: JSON.stringify({ fach, thema, aufgabentyp, umfang }),
       })
 
       const data = await res.json()
@@ -123,6 +125,19 @@ export default function App() {
             <option value="mc">Multiple Choice</option>
             <option value="lueckentext">Lückentext</option>
             <option value="gemischt">Gemischt</option>
+          </select>
+        </div>
+
+        <div className="formfeld">
+          <label htmlFor="umfang">Umfang</label>
+          <select
+            id="umfang"
+            value={umfang}
+            onChange={(e) => setUmfang(e.target.value)}
+          >
+            <option value="kurz">Kurz (ca. 5 Min)</option>
+            <option value="mittel">Mittel (ca. 10 Min)</option>
+            <option value="lang">Lang (ca. 15 Min)</option>
           </select>
         </div>
 

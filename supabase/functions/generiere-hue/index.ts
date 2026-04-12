@@ -66,7 +66,8 @@ Deno.serve(async (req: Request) => {
 
   try {
     // aufgabentyp: "mc" | "lueckentext" | "gemischt", default "mc"
-    const { fach, thema, aufgabentyp = 'mc' } = await req.json();
+    // umfang: "kurz" (3 Aufgaben) | "mittel" (5 Aufgaben, default) | "lang" (8 Aufgaben)
+    const { fach, thema, aufgabentyp = 'mc', umfang = 'mittel' } = await req.json();
 
     if (!fach || !thema) {
       return new Response(
@@ -83,12 +84,20 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Aufgabentyp-spezifische Anweisung
+    // Aufgabenanzahl je nach Umfang
+    const anzahlMap: Record<string, { mc: number; lt: number }> = {
+      kurz:   { mc: 2, lt: 1 },  // ~3 Aufgaben gesamt
+      mittel: { mc: 3, lt: 2 },  // ~5 Aufgaben gesamt
+      lang:   { mc: 5, lt: 3 },  // ~8 Aufgaben gesamt
+    };
+    const anzahl = anzahlMap[umfang] ?? anzahlMap['mittel'];
+
+    // Aufgabentyp- und Umfang-spezifische Anweisung
     const typAnweisung = aufgabentyp === 'mc'
-      ? 'Erstelle genau 3 Multiple-Choice-Fragen (fragen) und 0 Lückentexte (lueckentexte als leeres Array).'
+      ? `Erstelle genau ${anzahl.mc + anzahl.lt} Multiple-Choice-Fragen (fragen) und 0 Lückentexte (lueckentexte als leeres Array).`
       : aufgabentyp === 'lueckentext'
-        ? 'Erstelle 0 Multiple-Choice-Fragen (fragen als leeres Array) und genau 3 Lückentext-Aufgaben (lueckentexte). Jeder Satz enthält genau eine Lücke als ___.'
-        : 'Erstelle 2 Multiple-Choice-Fragen (fragen) und 2 Lückentext-Aufgaben (lueckentexte). Jeder Lückentext-Satz enthält genau eine Lücke als ___.';
+        ? `Erstelle 0 Multiple-Choice-Fragen (fragen als leeres Array) und genau ${anzahl.mc + anzahl.lt} Lückentext-Aufgaben (lueckentexte). Jeder Satz enthält genau eine Lücke als ___.`
+        : `Erstelle ${anzahl.mc} Multiple-Choice-Fragen (fragen) und ${anzahl.lt} Lückentext-Aufgaben (lueckentexte). Jeder Lückentext-Satz enthält genau eine Lücke als ___.`;
 
     // Prompt – österreichischer Lehrplan, Fachbegriffe explizit vorgegeben
     const prompt = `Erstelle eine Hausübung für österreichische Mittelschüler (AHS/NMS) im Fach "${fach}" zum Thema "${thema}".
