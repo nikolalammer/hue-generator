@@ -151,24 +151,28 @@ export default function App() {
             <p>{ergebnis.text}</p>
           </div>
 
-          {/* Fragen-Vorschau (nur lesen, nicht klickbar) */}
-          <p className="fragen-titel">Fragen (Vorschau)</p>
-          {ergebnis.fragen.map((frage, i) => (
-            <div key={i} className="frage">
-              <p className="fragetext">{i + 1}. {frage.frage}</p>
-              <ul className="antwortliste">
-                {frage.antworten.map((antwort, j) => (
-                  <li key={j} className="antwort-option vorschau">
-                    <span className="buchstabe">{String.fromCharCode(65 + j)}</span>
-                    {antwort}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          {/* Fragen-Vorschau – nur rendern wenn MC-Fragen vorhanden */}
+          {Array.isArray(ergebnis.fragen) && ergebnis.fragen.length > 0 && (
+            <>
+              <p className="fragen-titel">Fragen (Vorschau)</p>
+              {ergebnis.fragen.map((frage, i) => (
+                <div key={i} className="frage">
+                  <p className="fragetext">{i + 1}. {frage.frage}</p>
+                  <ul className="antwortliste">
+                    {Array.isArray(frage.antworten) && frage.antworten.map((antwort, j) => (
+                      <li key={j} className="antwort-option vorschau">
+                        <span className="buchstabe">{String.fromCharCode(65 + j)}</span>
+                        {antwort}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </>
+          )}
 
-          {/* Lückentext-Vorschau */}
-          {ergebnis.lueckentexte && ergebnis.lueckentexte.length > 0 && (
+          {/* Lückentext-Vorschau – nur rendern wenn Lückentexte vorhanden */}
+          {Array.isArray(ergebnis.lueckentexte) && ergebnis.lueckentexte.length > 0 && (
             <>
               <p className="fragen-titel">Lückentexte (Vorschau)</p>
               {ergebnis.lueckentexte.map((lt, i) => (
