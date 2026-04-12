@@ -1,111 +1,270 @@
+/* ============================================================
+   HÜ-Generator – Design-System
+   Primärfarbe: Teal #2D7D7B | Akzent: Bernstein #D97706
+   Body: Inter | Überschriften: Lora
+   ============================================================ */
+
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  /* --- Primärfarbe (gedämpftes Teal) --- */
+  --primary-50:  #E8F5F5;
+  --primary-100: #C8E8E7;
+  --primary-200: #9DD4D3;
+  --primary-300: #6BBFBE;
+  --primary-400: #45ADAC;
+  --primary-500: #2D7D7B;
+  --primary-600: #236160;
+  --primary-700: #1A4948;
+  --primary-800: #113130;
+  --primary-900: #091918;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  /* --- Akzentfarbe (warmes Bernstein) --- */
+  --accent-50:  #FFFBEB;
+  --accent-100: #FEF3C7;
+  --accent-200: #FDE68A;
+  --accent-500: #D97706;
+  --accent-600: #B45309;
+  --accent-700: #92400E;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* --- Neutralpalette (9 Stufen) --- */
+  --neutral-50:  #FAFAF9;
+  --neutral-100: #F4F4F2;
+  --neutral-200: #E8E8E4;
+  --neutral-300: #D4D4CF;
+  --neutral-400: #A8A8A0;
+  --neutral-500: #737370;
+  --neutral-600: #525250;
+  --neutral-700: #3A3A38;
+  --neutral-800: #252523;
+  --neutral-900: #141413;
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  /* --- Semantische Farben --- */
+  --erfolg:        #16A34A;
+  --erfolg-hell:   #F0FDF4;
+  --erfolg-border: #86EFAC;
+
+  --warnung:        #D97706;
+  --warnung-hell:   #FFFBEB;
+  --warnung-border: #FDE68A;
+
+  --fehler:        #DC2626;
+  --fehler-hell:   #FEF2F2;
+  --fehler-border: #FCA5A5;
+
+  --info:        #0284C7;
+  --info-hell:   #F0F9FF;
+  --info-border: #BAE6FD;
+
+  /* --- Oberflächen --- */
+  --bg:      #FAFAF9;
+  --surface: #FFFFFF;
+  --border:  var(--neutral-200);
+
+  /* --- Text --- */
+  --text:         var(--neutral-700);
+  --text-muted:   var(--neutral-500);
+  --text-heading: var(--neutral-900);
+
+  /* --- Typografie --- */
+  --font-sans:    'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Lora', Georgia, serif;
+  --font-mono:    ui-monospace, Consolas, monospace;
+
+  --text-xs:   12px;
+  --text-sm:   14px;
+  --text-base: 16px;
+  --text-lg:   18px;
+  --text-xl:   20px;
+  --text-2xl:  24px;
+  --text-3xl:  32px;
+
+  /* --- Abstände (8-px-Grid) --- */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* --- Schatten --- */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+
+  /* --- Radii --- */
+  --radius-sm:   6px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-full: 9999px;
+
+  /* --- Transitions --- */
+  --transition: 150ms ease-out;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
+/* ============================================================
+   Reset & Base
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
   margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--bg);
 }
 
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
   min-height: 100svh;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  color: var(--text-heading);
+  line-height: 1.2;
+  margin: 0;
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
 p {
   margin: 0;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+a {
+  color: var(--primary-500);
+  text-decoration: none;
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+a:hover {
+  text-decoration: underline;
+}
+
+/* ============================================================
+   Geteilte Button-Basis
+   (Komponenten-CSS überschreibt spezifische Klassen)
+   ============================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: 1;
+  border-radius: var(--radius-md);
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    color var(--transition),
+    transform var(--transition),
+    box-shadow var(--transition);
+  white-space: nowrap;
+  text-decoration: none !important;
+  user-select: none;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.btn-primary {
+  background: var(--primary-500);
+  color: #fff !important;
+  box-shadow: 0 1px 4px rgba(45,125,123,0.2);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-600);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(45,125,123,0.3);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--primary-500) !important;
+  border-color: var(--primary-500);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--primary-50);
+  transform: translateY(-1px);
+}
+
+.btn-danger {
+  background: transparent;
+  color: var(--fehler) !important;
+  border-color: var(--fehler-border);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--fehler-hell);
+  border-color: var(--fehler);
+}
+
+/* ============================================================
+   Skeleton-Loading-Animation
+   ============================================================ */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.skeleton {
+  background: var(--neutral-200);
+  border-radius: var(--radius-sm);
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-title {
+  height: 28px;
+  width: 60%;
+  margin-bottom: var(--space-4);
+}
+
+.skeleton-text {
+  height: 16px;
+  width: 80%;
+  margin-bottom: var(--space-2);
+}
+
+.skeleton-block {
+  height: 80px;
+  width: 100%;
+  margin-bottom: var(--space-3);
+  border-radius: var(--radius-md);
+}
+
+.skeleton-row {
+  height: 48px;
+  width: 100%;
+  margin-bottom: var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+.skeleton-wrapper {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-8) var(--space-4);
 }
