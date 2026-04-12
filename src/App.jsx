@@ -11,7 +11,7 @@ export default function App() {
   const [thema, setThema] = useState('')
   // Aufgabentyp: mc | lueckentext | gemischt
   const [aufgabentyp, setAufgabentyp] = useState('mc')
-  // ergebnis enthält jetzt { id, text, fragen } – id ist die UUID der gespeicherten HÜ
+  // ergebnis enthält { id, text, fragen, lueckentexte } – id ist die UUID der gespeicherten HÜ
   const [ergebnis, setErgebnis] = useState(null)
   const [laedt, setLaedt] = useState(false)
   const [fehler, setFehler] = useState(null)
