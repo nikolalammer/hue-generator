@@ -7,18 +7,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg);
+  /* Bernstein-Cream-Teal Vollflächen-Verlauf */
+  background: linear-gradient(150deg, #FEF3C7 0%, #FFFBEB 30%, #FAF8F3 60%, #E8F5F5 100%);
   padding: var(--space-4);
 }
 
-/* Zentrierte Karte, max-width 400px */
+/* Zentrierte Karte – schwebt über dem Hintergrund */
 .login-karte {
   background: var(--surface);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-xl);
   padding: var(--space-10) var(--space-8);
   width: 100%;
   max-width: 400px;
+  border: 1px solid rgba(217, 119, 6, 0.08);
 }
 
 /* Branding oben */
