@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { QRCodeCanvas } from 'qrcode.react'
 import AutoGrowTextarea from './components/AutoGrowTextarea'
+import VorschauEditor from './components/VorschauEditor'
 import './App.css'
 
 // URL der Edge Function
@@ -16,6 +17,8 @@ export default function App() {
   const [umfang, setUmfang] = useState('mittel')
   // ergebnis enthält { id, text, fragen, lueckentexte } – id ist die UUID der gespeicherten HÜ
   const [ergebnis, setErgebnis] = useState(null)
+  // istGespeichert: true sobald die Lehrperson die Vorschau gespeichert hat
+  const [istGespeichert, setIstGespeichert] = useState(false)
   const [laedt, setLaedt] = useState(false)
   const [fehler, setFehler] = useState(null)
   const [kopiert, setKopiert] = useState(false)
@@ -25,6 +28,7 @@ export default function App() {
     setLaedt(true)
     setFehler(null)
     setErgebnis(null)
+    setIstGespeichert(false)
     setKopiert(false)
 
     try {
@@ -155,8 +159,27 @@ export default function App() {
 
       {fehler && <div className="fehler">{fehler}</div>}
 
-      {/* Schritt 2: Vorschau + teilbarer Link */}
-      {ergebnis && (
+      {/* Schritt 2a: Editierbare Vorschau – Lehrperson prüft und speichert */}
+      {ergebnis && !istGespeichert && (
+        <section className="ergebnis">
+          <div className="ergebnis-kopf">
+            <h2>{fach} – {thema}</h2>
+          </div>
+          <VorschauEditor
+            ergebnis={ergebnis}
+            fach={fach}
+            thema={thema}
+            onGespeichert={(bearbeiteteDaten) => {
+              // Ergebnis mit den bearbeiteten Daten aktualisieren, dann Link anzeigen
+              setErgebnis((prev) => ({ ...prev, ...bearbeiteteDaten }))
+              setIstGespeichert(true)
+            }}
+          />
+        </section>
+      )}
+
+      {/* Schritt 2b: Freigeschaltete Vorschau + Schüler-Link + QR-Code */}
+      {ergebnis && istGespeichert && (
         <section className="ergebnis">
           <div className="ergebnis-kopf">
             <h2>{fach} – {thema}</h2>
