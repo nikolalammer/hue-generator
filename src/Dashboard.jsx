@@ -121,10 +121,22 @@ export default function Dashboard() {
       {fehler && <div className="dashboard-fehler">{fehler}</div>}
 
       {!laedt && !fehler && gefiltert.length === 0 && (
-        <p className="dashboard-leer">Keine Einträge gefunden.</p>
+        <div className="dashboard-leer">
+          <span className="dashboard-leer-icon" aria-hidden="true">📋</span>
+          <p className="dashboard-leer-titel">
+            {eintraege.length === 0 ? 'Noch keine Ergebnisse vorhanden' : 'Keine Einträge gefunden'}
+          </p>
+          <p className="dashboard-leer-hinweis">
+            {eintraege.length === 0
+              ? 'Sobald Schüler eine HÜ abgeben, erscheinen ihre Ergebnisse hier.'
+              : 'Passe die Filter an, um andere Einträge anzuzeigen.'}
+          </p>
+        </div>
       )}
 
       {!laedt && gefiltert.length > 0 && (
+        <>
+        <p className="tabelle-scroll-hinweis">← Tabelle horizontal scrollen →</p>
         <div className="tabelle-wrapper">
           <table className="ergebnis-tabelle">
             <thead>
@@ -144,7 +156,9 @@ export default function Dashboard() {
               {gefiltert.map((e) => (
                 <tr key={e.id}>
                   <td className="datum-zelle">{formatDatum(e.erstellt_am)}</td>
-                  <td><span className="fach-badge">{e.fach}</span></td>
+                  <td>
+                    <span className={`fach-badge fach-badge--${e.fach?.toLowerCase()}`}>{e.fach}</span>
+                  </td>
                   <td>{e.thema}</td>
                   <td className="zahl-zelle">{e.schueler_nummer}</td>
                   <td className="zahl-zelle">{e.richtige_antworten}</td>
@@ -178,6 +192,7 @@ export default function Dashboard() {
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       {/* QR-Code Modal */}
