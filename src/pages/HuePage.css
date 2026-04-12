@@ -472,8 +472,34 @@
 }
 
 /* ============================================================
-   Ergebnis-Zusammenfassung – großes Prozent-Badge
+   Ergebnis-Zusammenfassung – großes Prozent-Badge + Konfetti-Vibe
    ============================================================ */
+
+/* Einspring-Animation für das Prozent-Badge */
+@keyframes erfolgBounce {
+  0%   { transform: scale(0.3) rotate(-8deg); opacity: 0; }
+  55%  { transform: scale(1.2) rotate(3deg); }
+  75%  { transform: scale(0.92) rotate(-1deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* Konfetti-Punkte links – via box-shadow Trick */
+@keyframes konfettiLinks {
+  0%   { transform: translateY(0) translateX(0); opacity: 1; }
+  100% { transform: translateY(-70px) translateX(-30px); opacity: 0; }
+}
+
+/* Konfetti-Punkte rechts */
+@keyframes konfettiRechts {
+  0%   { transform: translateY(0) translateX(0); opacity: 1; }
+  100% { transform: translateY(-70px) translateX(30px); opacity: 0; }
+}
+
+/* Einblend-Animation für den Text */
+@keyframes slideHochEin {
+  from { transform: translateY(10px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
 
 /* Wrapper: Badge oben, Textzeile darunter, zentriert */
 .ergebnis-zusammenfassung-wrapper {
@@ -482,31 +508,73 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-4);
+  position: relative;
+  overflow: visible;
 }
 
-/* Kreisförmiges Prozent-Badge */
+/* Konfetti-Punkte links beim Perfekt-Zustand */
+.ergebnis-zusammenfassung-wrapper.perfekt::before {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary-400);
+  top: 24px;
+  left: calc(50% - 70px);
+  box-shadow:
+    -28px 16px 0 4px var(--secondary-400),
+    -12px -20px 0 3px var(--primary-300),
+    -50px -8px 0 4px var(--erfolg),
+    -36px 36px 0 3px var(--secondary-300);
+  animation: konfettiLinks 1.0s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards;
+  opacity: 0;
+}
+
+/* Konfetti-Punkte rechts beim Perfekt-Zustand */
+.ergebnis-zusammenfassung-wrapper.perfekt::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--secondary-400);
+  top: 24px;
+  right: calc(50% - 70px);
+  box-shadow:
+    28px 12px 0 4px var(--primary-400),
+    12px -24px 0 3px var(--secondary-300),
+    50px -10px 0 4px var(--primary-300),
+    36px 32px 0 3px var(--erfolg-border);
+  animation: konfettiRechts 1.0s cubic-bezier(0.22, 1, 0.36, 1) 0.4s forwards;
+  opacity: 0;
+}
+
+/* Kreisförmiges Prozent-Badge mit Einsprung-Animation */
 .ergebnis-prozent {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 96px;
-  height: 96px;
+  width: 104px;
+  height: 104px;
   border-radius: var(--radius-full);
   font-family: var(--font-sans);
   font-size: var(--text-2xl);
-  font-weight: 600;
+  font-weight: 700;
   background: var(--warnung-hell);
   border: 3px solid var(--warnung-border);
-  color: var(--accent-700);
+  color: var(--primary-700);
+  animation: erfolgBounce 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 .ergebnis-prozent.perfekt {
   background: var(--erfolg-hell);
-  border-color: var(--erfolg-border);
+  border: 3px solid var(--erfolg-border);
   color: var(--erfolg);
+  box-shadow: 0 0 0 6px rgba(101, 163, 13, 0.12);
 }
 
-/* Textzeile mit Originalinhalt */
+/* Textzeile mit Originalinhalt – slideUp-Animation */
 .ergebnis-zusammenfassung {
   padding: var(--space-4) var(--space-5);
   background: var(--warnung-hell);
@@ -515,8 +583,9 @@
   font-size: var(--text-base);
   font-weight: 600;
   text-align: center;
-  color: var(--accent-700);
+  color: var(--primary-700);
   width: 100%;
+  animation: slideHochEin 0.4s ease-out 0.4s both;
 }
 
 .ergebnis-zusammenfassung.perfekt {
