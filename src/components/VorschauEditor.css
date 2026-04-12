@@ -167,20 +167,20 @@
   margin-bottom: var(--space-6);
 }
 
-/* Speichern-Button – volle Breite, Primary (Bernstein) */
+/* Speichern-Button – volle Breite, Gradient */
 .editor-speichern-btn {
   width: 100%;
   min-height: 48px;
   padding: var(--space-3) var(--space-6);
   font-family: var(--font-sans);
   font-size: var(--text-base);
-  font-weight: 500;
-  background: var(--primary-500);
+  font-weight: 600;
+  background: linear-gradient(135deg, #D97706 0%, #EA580C 100%);
   color: #fff;
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
-  box-shadow: 0 1px 4px rgba(217, 119, 6, 0.2);
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.35);
   transition:
     background var(--transition),
     transform var(--transition),
@@ -189,9 +189,9 @@
 }
 
 .editor-speichern-btn:hover:not(:disabled) {
-  background: var(--primary-600);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
+  background: linear-gradient(135deg, #B45309 0%, #C2410C 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(217, 119, 6, 0.45);
 }
 
 .editor-speichern-btn:disabled {
