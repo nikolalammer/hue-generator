@@ -108,13 +108,20 @@ export default function HuePage() {
     setSendet(false)
   }
 
-  // Ladezustand
+  // Ladezustand – Skeleton-Platzhalter
   if (laedt) {
     return (
       <div className="hue-container">
         <div className="hue-ladeindikator">
-          <span className="hue-spinner" aria-hidden="true" />
-          Hausübung wird geladen...
+          <div className="hue-skeleton-card">
+            <div className="skeleton skeleton-title" />
+            <div className="skeleton skeleton-text" />
+            <div className="skeleton skeleton-text" style={{ width: '65%' }} />
+          </div>
+          <div className="hue-skeleton-card">
+            <div className="skeleton skeleton-block" />
+            <div className="skeleton skeleton-block" />
+          </div>
         </div>
       </div>
     )
@@ -263,16 +270,20 @@ export default function HuePage() {
                 : 'Auswerten'}
           </button>
 
-          {/* Ergebnis-Zusammenfassung */}
+          {/* Ergebnis-Zusammenfassung – großes Prozent-Badge */}
           {ausgewertet && (() => {
             const richtig = fragen.filter((f, i) => ausgewaehlt[i] === f.korrekt).length
               + lueckentexte.filter((lt, i) => lueckenAntworten[i].trim().toLowerCase() === lt.antwort.trim().toLowerCase()).length
             const gesamt = fragen.length + lueckentexte.length
+            const prozent = Math.round((richtig / gesamt) * 100)
+            const istPerfekt = richtig === gesamt
             return (
-              <div className={`ergebnis-zusammenfassung ${richtig === gesamt ? 'perfekt' : ''}`}>
-                {richtig === gesamt
-                  ? `Perfekt! Alle ${gesamt} Fragen richtig!`
-                  : `${richtig} von ${gesamt} Fragen richtig`}
+              <div className="ergebnis-zusammenfassung-wrapper">
+                <div className={`ergebnis-zusammenfassung ${istPerfekt ? 'perfekt' : ''}`}>
+                  {istPerfekt
+                    ? `Perfekt! Alle ${gesamt} Fragen richtig!`
+                    : `${richtig} von ${gesamt} Fragen richtig – ${prozent} %`}
+                </div>
               </div>
             )
           })()}
