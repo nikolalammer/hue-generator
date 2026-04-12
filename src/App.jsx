@@ -141,7 +141,9 @@ export default function App() {
       {/* Schritt 2: Vorschau + teilbarer Link */}
       {ergebnis && (
         <section className="ergebnis">
-          <h2>{fach} – {thema}</h2>
+          <div className="ergebnis-kopf">
+            <h2>{fach} – {thema}</h2>
+          </div>
 
           {/* Lesetext-Vorschau */}
           <div className="lesetext">
