@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { QRCodeCanvas } from 'qrcode.react'
+import AutoGrowTextarea from './components/AutoGrowTextarea'
+import VorschauEditor from './components/VorschauEditor'
 import './App.css'
 
 // URL der Edge Function
@@ -11,8 +13,12 @@ export default function App() {
   const [thema, setThema] = useState('')
   // Aufgabentyp: mc | lueckentext | gemischt
   const [aufgabentyp, setAufgabentyp] = useState('mc')
-  // ergebnis enthält jetzt { id, text, fragen } – id ist die UUID der gespeicherten HÜ
+  // Umfang: kurz (~3 Aufgaben) | mittel (~5) | lang (~8)
+  const [umfang, setUmfang] = useState('mittel')
+  // ergebnis enthält { id, text, fragen, lueckentexte } – id ist die UUID der gespeicherten HÜ
   const [ergebnis, setErgebnis] = useState(null)
+  // istGespeichert: true sobald die Lehrperson die Vorschau gespeichert hat
+  const [istGespeichert, setIstGespeichert] = useState(false)
   const [laedt, setLaedt] = useState(false)
   const [fehler, setFehler] = useState(null)
   const [kopiert, setKopiert] = useState(false)
@@ -22,6 +28,7 @@ export default function App() {
     setLaedt(true)
     setFehler(null)
     setErgebnis(null)
+    setIstGespeichert(false)
     setKopiert(false)
 
     try {
@@ -32,7 +39,7 @@ export default function App() {
           'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
-        body: JSON.stringify({ fach, thema, aufgabentyp }),
+        body: JSON.stringify({ fach, thema, aufgabentyp, umfang }),
       })
 
       const data = await res.json()
@@ -79,9 +86,11 @@ export default function App() {
   return (
     <div className="container">
       <header className="header">
-        <Link to="/dashboard" className="dashboard-link">Dashboard</Link>
-        <h1>HUE-Generator</h1>
-        <p>KI-generierte Hausübungen für die Mittelschule</p>
+        <div className="header-mitte">
+          <h1>Aufgabolino</h1>
+          <p>KI-Hausübungen für die Mittelschule</p>
+        </div>
+        <Link to="/dashboard" className="dashboard-link">Dashboard →</Link>
       </header>
 
       {/* Schritt 1: Hausübung generieren */}
@@ -101,10 +110,9 @@ export default function App() {
 
         <div className="formfeld">
           <label htmlFor="thema">Thema</label>
-          <input
+          <AutoGrowTextarea
             id="thema"
-            type="text"
-            placeholder="z. B. Adjektive, Bruchrechnung, Simple Past"
+            placeholder="z.B. Adjektive – Steigerung und Vergleich"
             value={thema}
             onChange={(e) => setThema(e.target.value)}
             required
@@ -124,8 +132,21 @@ export default function App() {
           </select>
         </div>
 
+        <div className="formfeld">
+          <label htmlFor="umfang">Umfang</label>
+          <select
+            id="umfang"
+            value={umfang}
+            onChange={(e) => setUmfang(e.target.value)}
+          >
+            <option value="kurz">Kurz (ca. 5 Min)</option>
+            <option value="mittel">Mittel (ca. 10 Min)</option>
+            <option value="lang">Lang (ca. 15 Min)</option>
+          </select>
+        </div>
+
         <button className="generieren-btn" type="submit" disabled={laedt}>
-          {laedt ? 'Wird generiert...' : 'HUE generieren'}
+          {laedt ? 'Wird generiert...' : 'Hausübung generieren'}
         </button>
       </form>
 
@@ -138,10 +159,31 @@ export default function App() {
 
       {fehler && <div className="fehler">{fehler}</div>}
 
-      {/* Schritt 2: Vorschau + teilbarer Link */}
-      {ergebnis && (
+      {/* Schritt 2a: Editierbare Vorschau – Lehrperson prüft und speichert */}
+      {ergebnis && !istGespeichert && (
         <section className="ergebnis">
-          <h2>{fach} – {thema}</h2>
+          <div className="ergebnis-kopf">
+            <h2>{fach} – {thema}</h2>
+          </div>
+          <VorschauEditor
+            ergebnis={ergebnis}
+            fach={fach}
+            thema={thema}
+            onGespeichert={(bearbeiteteDaten) => {
+              // Ergebnis mit den bearbeiteten Daten aktualisieren, dann Link anzeigen
+              setErgebnis((prev) => ({ ...prev, ...bearbeiteteDaten }))
+              setIstGespeichert(true)
+            }}
+          />
+        </section>
+      )}
+
+      {/* Schritt 2b: Freigeschaltete Vorschau + Schüler-Link + QR-Code */}
+      {ergebnis && istGespeichert && (
+        <section className="ergebnis">
+          <div className="ergebnis-kopf">
+            <h2>{fach} – {thema}</h2>
+          </div>
 
           {/* Lesetext-Vorschau */}
           <div className="lesetext">
@@ -149,24 +191,28 @@ export default function App() {
             <p>{ergebnis.text}</p>
           </div>
 
-          {/* Fragen-Vorschau (nur lesen, nicht klickbar) */}
-          <p className="fragen-titel">Fragen (Vorschau)</p>
-          {ergebnis.fragen.map((frage, i) => (
-            <div key={i} className="frage">
-              <p className="fragetext">{i + 1}. {frage.frage}</p>
-              <ul className="antwortliste">
-                {frage.antworten.map((antwort, j) => (
-                  <li key={j} className="antwort-option vorschau">
-                    <span className="buchstabe">{String.fromCharCode(65 + j)}</span>
-                    {antwort}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          {/* Fragen-Vorschau – nur rendern wenn MC-Fragen vorhanden */}
+          {Array.isArray(ergebnis.fragen) && ergebnis.fragen.length > 0 && (
+            <>
+              <p className="fragen-titel">Fragen (Vorschau)</p>
+              {ergebnis.fragen.map((frage, i) => (
+                <div key={i} className="frage">
+                  <p className="fragetext">{i + 1}. {frage.frage}</p>
+                  <ul className="antwortliste">
+                    {Array.isArray(frage.antworten) && frage.antworten.map((antwort, j) => (
+                      <li key={j} className="antwort-option vorschau">
+                        <span className="buchstabe">{String.fromCharCode(65 + j)}</span>
+                        {antwort}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </>
+          )}
 
-          {/* Lückentext-Vorschau */}
-          {ergebnis.lueckentexte && ergebnis.lueckentexte.length > 0 && (
+          {/* Lückentext-Vorschau – nur rendern wenn Lückentexte vorhanden */}
+          {Array.isArray(ergebnis.lueckentexte) && ergebnis.lueckentexte.length > 0 && (
             <>
               <p className="fragen-titel">Lückentexte (Vorschau)</p>
               {ergebnis.lueckentexte.map((lt, i) => (
