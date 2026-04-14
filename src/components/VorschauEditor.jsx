@@ -2,6 +2,9 @@ import { useState } from 'react'
 import supabase from '../lib/supabaseClient'
 import './VorschauEditor.css'
 
+// URL der Edge Function – wird auch für Einzelaufgaben-Regenerierung genutzt
+const FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generiere-hue`
+
 /**
  * VorschauEditor – Lehrer kann generierte HÜ prüfen und bearbeiten,
  * bevor der Schüler-Link freigeschaltet wird.
@@ -12,10 +15,7 @@ import './VorschauEditor.css'
  *   thema         string
  *   onGespeichert function(bearbeiteteDaten) – wird nach Speichern aufgerufen
  */
-// fach und thema werden als Props akzeptiert, damit die Komponente
-// zukünftig eigenständig einen Titel rendern kann.
-// eslint-disable-next-line no-unused-vars
-export default function VorschauEditor({ ergebnis, fach: _fach, thema: _thema, onGespeichert }) {
+export default function VorschauEditor({ ergebnis, fach, thema, onGespeichert }) {
   // Tiefer Klon damit der lokale State unabhängig vom Parent-State ist
   const [bearbeitet, setBearbeitet] = useState(() => ({
     text: ergebnis.text ?? '',
@@ -37,6 +37,11 @@ export default function VorschauEditor({ ergebnis, fach: _fach, thema: _thema, o
   const [speichert, setSpeichert] = useState(false)
   const [gespeichert, setGespeichert] = useState(false)
   const [fehler, setFehler] = useState(null)
+
+  // Lädt-Zustand je Aufgabe: 'mc-0', 'lt-1', etc.
+  const [neuGeneriertWird, setNeuGeneriertWird] = useState(new Set())
+  // Fehler je Aufgabe
+  const [neuGenFehler, setNeuGenFehler] = useState({})
 
   // --- Lesetext ändern ---
   function textAendern(e) {
@@ -98,6 +103,74 @@ export default function VorschauEditor({ ergebnis, fach: _fach, thema: _thema, o
     })
   }
 
+  // --- Einzelne MC-Frage neu generieren ---
+  async function frageNeuGenerieren(index) {
+    const key = `mc-${index}`
+    setNeuGeneriertWird((prev) => new Set(prev).add(key))
+    setNeuGenFehler((prev) => ({ ...prev, [key]: null }))
+
+    try {
+      const res = await fetch(FUNCTION_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ fach, thema, einzelaufgabe: 'mc' }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.frage) throw new Error(data.fehler || 'Neu-Generierung fehlgeschlagen.')
+
+      setBearbeitet((prev) => ({
+        ...prev,
+        fragen: prev.fragen.map((f, i) => (i === index ? { ...data.frage } : f)),
+      }))
+    } catch (err) {
+      setNeuGenFehler((prev) => ({ ...prev, [key]: err.message }))
+    } finally {
+      setNeuGeneriertWird((prev) => {
+        const next = new Set(prev)
+        next.delete(key)
+        return next
+      })
+    }
+  }
+
+  // --- Einzelnen Lückentext neu generieren ---
+  async function lueckentextNeuGenerieren(index) {
+    const key = `lt-${index}`
+    setNeuGeneriertWird((prev) => new Set(prev).add(key))
+    setNeuGenFehler((prev) => ({ ...prev, [key]: null }))
+
+    try {
+      const res = await fetch(FUNCTION_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ fach, thema, einzelaufgabe: 'lt' }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.lueckentext) throw new Error(data.fehler || 'Neu-Generierung fehlgeschlagen.')
+
+      setBearbeitet((prev) => ({
+        ...prev,
+        lueckentexte: prev.lueckentexte.map((lt, i) => (i === index ? { ...data.lueckentext } : lt)),
+      }))
+    } catch (err) {
+      setNeuGenFehler((prev) => ({ ...prev, [key]: err.message }))
+    } finally {
+      setNeuGeneriertWird((prev) => {
+        const next = new Set(prev)
+        next.delete(key)
+        return next
+      })
+    }
+  }
+
   // --- Speichern: Supabase update() ---
   async function speichern() {
     // Guard: kein Doppel-Submit, kein nochmaliges Schreiben nach Erfolg
@@ -148,7 +221,21 @@ export default function VorschauEditor({ ergebnis, fach: _fach, thema: _thema, o
           <p className="editor-abschnitt-label">Multiple-Choice-Fragen</p>
           {bearbeitet.fragen.map((frage, fi) => (
             <div key={fi} className="editor-frageblock">
-              <p className="editor-frage-nummer">Frage {fi + 1}</p>
+              <div className="editor-block-kopf">
+                <p className="editor-frage-nummer">Frage {fi + 1}</p>
+                <button
+                  type="button"
+                  className="editor-neu-btn"
+                  onClick={() => frageNeuGenerieren(fi)}
+                  disabled={neuGeneriertWird.has(`mc-${fi}`)}
+                  title="Diese Frage durch die KI neu generieren"
+                >
+                  {neuGeneriertWird.has(`mc-${fi}`) ? '⏳ Generiert...' : '↻ Neu generieren'}
+                </button>
+              </div>
+              {neuGenFehler[`mc-${fi}`] && (
+                <div className="editor-neu-fehler">{neuGenFehler[`mc-${fi}`]}</div>
+              )}
               <input
                 className="editor-input"
                 type="text"
@@ -193,7 +280,21 @@ export default function VorschauEditor({ ergebnis, fach: _fach, thema: _thema, o
           <p className="editor-abschnitt-label">Lückentexte</p>
           {bearbeitet.lueckentexte.map((lt, li) => (
             <div key={li} className="editor-lueckentext-block">
-              <p className="editor-frage-nummer">Lückentext {li + 1}</p>
+              <div className="editor-block-kopf">
+                <p className="editor-frage-nummer">Lückentext {li + 1}</p>
+                <button
+                  type="button"
+                  className="editor-neu-btn"
+                  onClick={() => lueckentextNeuGenerieren(li)}
+                  disabled={neuGeneriertWird.has(`lt-${li}`)}
+                  title="Diesen Lückentext durch die KI neu generieren"
+                >
+                  {neuGeneriertWird.has(`lt-${li}`) ? '⏳ Generiert...' : '↻ Neu generieren'}
+                </button>
+              </div>
+              {neuGenFehler[`lt-${li}`] && (
+                <div className="editor-neu-fehler">{neuGenFehler[`lt-${li}`]}</div>
+              )}
               <label className="editor-abschnitt-label" htmlFor={`lt-satz-${li}`}>
                 Satz (Lücke als ___ markiert)
               </label>
