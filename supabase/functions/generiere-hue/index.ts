@@ -21,7 +21,8 @@ Deno.serve(async (req: Request) => {
   try {
     // aufgabentyp: "mc" | "lueckentext" | "gemischt", default "mc"
     // umfang: "kurz" (3 Aufgaben) | "mittel" (5 Aufgaben, default) | "lang" (8 Aufgaben)
-    const { fach, thema, aufgabentyp = 'mc', umfang = 'mittel' } = await req.json();
+    // einzelaufgabe: "mc" | "lt" – eine einzelne Aufgabe neu generieren (kein DB-Speichern)
+    const { fach, thema, aufgabentyp = 'mc', umfang = 'mittel', einzelaufgabe } = await req.json();
 
     if (!fach || !thema) {
       return new Response(
@@ -36,6 +37,69 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({ fehler: 'API-Key nicht konfiguriert.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    // Einzelaufgabe-Modus: genau 1 Frage neu generieren, ohne in DB zu speichern
+    if (einzelaufgabe === 'mc' || einzelaufgabe === 'lt') {
+      const einzelTool = einzelaufgabe === 'mc' ? {
+        name: 'frage_erstellen',
+        description: 'Erstellt eine einzelne Multiple-Choice-Frage.',
+        input_schema: {
+          type: 'object',
+          properties: {
+            frage: { type: 'string' },
+            antworten: { type: 'array', items: { type: 'string' }, minItems: 4, maxItems: 4 },
+            korrekt: { type: 'integer', description: 'Index 0-3 der richtigen Antwort.' },
+          },
+          required: ['frage', 'antworten', 'korrekt'],
+        },
+      } : {
+        name: 'lueckentext_erstellen',
+        description: 'Erstellt eine einzelne Lückentext-Aufgabe.',
+        input_schema: {
+          type: 'object',
+          properties: {
+            satz: { type: 'string', description: 'Satz mit genau einer Lücke als ___.' },
+            antwort: { type: 'string', description: 'Erwartete Antwort.' },
+          },
+          required: ['satz', 'antwort'],
+        },
+      };
+
+      const einzelPrompt = einzelaufgabe === 'mc'
+        ? `Erstelle eine neue Multiple-Choice-Frage für österreichische Mittelschüler (AHS/NMS) im Fach "${fach}" zum Thema "${thema}". Genau 4 Antwortmöglichkeiten, "korrekt" ist der Index 0-3 der richtigen Antwort. Österreichische Fachbegriffe verwenden.`
+        : `Erstelle eine neue Lückentext-Aufgabe für österreichische Mittelschüler (AHS/NMS) im Fach "${fach}" zum Thema "${thema}". Satz mit genau einer Lücke als ___, "antwort" ist das erwartete Wort. Österreichische Fachbegriffe verwenden.`;
+
+      const einzelResponse = await fetch(ANTHROPIC_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': anthropicKey,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 512,
+          tools: [einzelTool],
+          tool_choice: { type: 'tool', name: einzelTool.name },
+          messages: [{ role: 'user', content: einzelPrompt }],
+        }),
+      });
+
+      if (!einzelResponse.ok) {
+        const fehler = await einzelResponse.text();
+        console.error('Anthropic Einzelaufgabe Fehler:', fehler);
+        throw new Error('KI-Generierung fehlgeschlagen.');
+      }
+
+      const einzelDaten = await einzelResponse.json();
+      const einzelResult = einzelDaten.content.find((c: { type: string }) => c.type === 'tool_use');
+      if (!einzelResult) throw new Error('Kein Ergebnis von der KI.');
+
+      const returnKey = einzelaufgabe === 'mc' ? 'frage' : 'lueckentext';
+      return new Response(JSON.stringify({ [returnKey]: einzelResult.input }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     // Aufgabenanzahl je nach Umfang

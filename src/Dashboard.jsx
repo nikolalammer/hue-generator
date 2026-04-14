@@ -26,6 +26,7 @@ export default function Dashboard() {
   const [fehler, setFehler] = useState(null)
   const [filterFach, setFilterFach] = useState('Alle')
   const [filterThema, setFilterThema] = useState('')
+  const [filterKlasse, setFilterKlasse] = useState('')
   const [filterHueId, setFilterHueId] = useState(null)
   // null = Modal geschlossen, UUID = QR-Code für diese HÜ anzeigen
   const [qrHueId, setQrHueId] = useState(null)
@@ -59,8 +60,9 @@ export default function Dashboard() {
   const gefiltert = eintraege.filter((e) => {
     const fachPasst = filterFach === 'Alle' || e.fach === filterFach
     const themaPasst = e.thema.toLowerCase().includes(filterThema.toLowerCase())
+    const klassePasst = !filterKlasse || (e.schueler_klasse || '').toLowerCase().includes(filterKlasse.toLowerCase())
     const huePasst = !filterHueId || e.hausuebung_id === filterHueId
-    return fachPasst && themaPasst && huePasst
+    return fachPasst && themaPasst && klassePasst && huePasst
   })
 
   return (
@@ -100,6 +102,18 @@ export default function Dashboard() {
             placeholder="Thema suchen..."
             value={filterThema}
             onChange={(e) => setFilterThema(e.target.value)}
+          />
+        </div>
+
+        <div className="filter-feld">
+          <label htmlFor="filter-klasse">Klasse</label>
+          <input
+            id="filter-klasse"
+            type="text"
+            placeholder="z. B. 2a"
+            value={filterKlasse}
+            onChange={(e) => setFilterKlasse(e.target.value)}
+            maxLength={3}
           />
         </div>
 
@@ -144,6 +158,7 @@ export default function Dashboard() {
                 <th>Datum</th>
                 <th>Fach</th>
                 <th>Thema</th>
+                <th>Klasse</th>
                 <th>Nr.</th>
                 <th>Richtig</th>
                 <th>Gesamt</th>
@@ -160,6 +175,7 @@ export default function Dashboard() {
                     <span className={`fach-badge fach-badge--${e.fach?.toLowerCase()}`}>{e.fach}</span>
                   </td>
                   <td>{e.thema}</td>
+                  <td className="klasse-zelle">{e.schueler_klasse || '–'}</td>
                   <td className="zahl-zelle">{e.schueler_nummer}</td>
                   <td className="zahl-zelle">{e.richtige_antworten}</td>
                   <td className="zahl-zelle">{e.gesamt_fragen}</td>

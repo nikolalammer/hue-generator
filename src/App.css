@@ -290,6 +290,17 @@
   margin-right: auto;
 }
 
+.fehler strong {
+  display: block;
+  font-weight: 600;
+}
+
+.fehler-hinweis {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-xs);
+  opacity: 0.85;
+}
+
 /* ============================================================
    Ergebnis-Bereich (nach Generierung)
    ============================================================ */
