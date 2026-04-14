@@ -44,7 +44,15 @@ export default function App() {
 
       const data = await res.json()
       if (!res.ok) throw new Error(data.fehler || 'Generierung fehlgeschlagen.')
-      // data = { id, text, fragen }
+
+      // Prüfen ob die KI tatsächlich Aufgaben geliefert hat
+      const hatFragen = Array.isArray(data.fragen) && data.fragen.length > 0
+      const hatLueckentexte = Array.isArray(data.lueckentexte) && data.lueckentexte.length > 0
+      if (!hatFragen && !hatLueckentexte) {
+        throw new Error('Die KI hat keine Aufgaben zurückgeliefert.')
+      }
+
+      // data = { id, text, fragen, lueckentexte }
       setErgebnis(data)
     } catch (err) {
       setFehler(err.message)
@@ -157,7 +165,12 @@ export default function App() {
         </div>
       )}
 
-      {fehler && <div className="fehler">{fehler}</div>}
+      {fehler && (
+        <div className="fehler" role="alert">
+          <strong>{fehler}</strong>
+          <p className="fehler-hinweis">Bitte versuche die HÜ neu zu generieren.</p>
+        </div>
+      )}
 
       {/* Schritt 2a: Editierbare Vorschau – Lehrperson prüft und speichert */}
       {ergebnis && !istGespeichert && (
