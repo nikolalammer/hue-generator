@@ -21,6 +21,8 @@ export default function HuePage() {
 
   // Schüler-Flow
   const [schuelerNummer, setSchuelerNummer] = useState('')
+  const [schuelerKlasse, setSchuelerKlasse] = useState('')
+  const [klasseNummernFehler, setKlasseNummernFehler] = useState(null)
   const [nummerBestaetigt, setNummerBestaetigt] = useState(false)
   const [ausgewaehlt, setAusgewaehlt] = useState([])
   // Lückentext-Eingaben der Schüler (ein String pro Lückentext)
@@ -60,13 +62,24 @@ export default function HuePage() {
     laden()
   }, [id])
 
-  // Schülernummer bestätigen
+  // Klasse und Katalognummer bestätigen
   function nummerBestaetigen(e) {
     e.preventDefault()
+    setKlasseNummernFehler(null)
+
     const num = parseInt(schuelerNummer, 10)
-    if (num >= 1 && num <= 40) {
-      setNummerBestaetigt(true)
+    const klasseGueltig = /^\d[a-zA-Z]$/.test(schuelerKlasse.trim())
+    const nummerGueltig = num >= 1 && num <= 40
+
+    if (!klasseGueltig) {
+      setKlasseNummernFehler('Bitte gib eine gültige Klasse ein (z. B. 2a, 3b).')
+      return
     }
+    if (!nummerGueltig) {
+      setKlasseNummernFehler('Die Katalognummer muss zwischen 1 und 40 liegen.')
+      return
+    }
+    setNummerBestaetigt(true)
   }
 
   // Auswertung und Speicherung in Supabase
@@ -85,11 +98,12 @@ export default function HuePage() {
     const gesamt = fragen.length + lueckentexte.length
     const prozent = Math.round((richtig / gesamt) * 100)
 
-    // Ergebnis mit hausuebung_id speichern
+    // Ergebnis mit hausuebung_id und Klasse speichern
     const { error } = await supabase.from('ergebnisse').insert({
       fach,
       thema,
       schueler_nummer: parseInt(schuelerNummer, 10),
+      schueler_klasse: schuelerKlasse.trim().toLowerCase(),
       richtige_antworten: richtig,
       gesamt_fragen: gesamt,
       prozent,
@@ -143,24 +157,43 @@ export default function HuePage() {
         <p>{fach} – {thema}</p>
       </header>
 
-      {/* Schritt 1: Schülernummer eingeben */}
+      {/* Schritt 1: Klasse und Katalognummer eingeben */}
       {!nummerBestaetigt && (
         <form className="nummern-formular" onSubmit={nummerBestaetigen}>
-          <label htmlFor="nummer">Deine Nummer in der Klassenliste</label>
-          <div className="nummern-eingabe">
-            <input
-              id="nummer"
-              type="number"
-              min="1"
-              max="40"
-              placeholder="1 – 40"
-              value={schuelerNummer}
-              onChange={(e) => setSchuelerNummer(e.target.value)}
-              required
-              autoFocus
-            />
-            <button type="submit">Weiter</button>
+          <div className="nummern-felder">
+            <div className="nummern-feld">
+              <label htmlFor="klasse">Deine Klasse</label>
+              <input
+                id="klasse"
+                type="text"
+                placeholder="z. B. 2a"
+                value={schuelerKlasse}
+                onChange={(e) => setSchuelerKlasse(e.target.value)}
+                required
+                autoFocus
+                maxLength={3}
+                className="klasse-input"
+              />
+            </div>
+            <div className="nummern-feld">
+              <label htmlFor="nummer">Katalognummer</label>
+              <input
+                id="nummer"
+                type="number"
+                min="1"
+                max="40"
+                placeholder="1 – 40"
+                value={schuelerNummer}
+                onChange={(e) => setSchuelerNummer(e.target.value)}
+                required
+                className="katalog-input"
+              />
+            </div>
           </div>
+          {klasseNummernFehler && (
+            <p className="nummern-fehler">{klasseNummernFehler}</p>
+          )}
+          <button type="submit" className="nummern-weiter-btn">Weiter</button>
         </form>
       )}
 
