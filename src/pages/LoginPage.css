@@ -1,5 +1,6 @@
 /* ============================================================
    Login-Seite – zentriertes Card-Layout
+   Hintergrund: Karo-Muster, Card: harter Cobalt-Rahmen
    ============================================================ */
 
 .login-container {
@@ -7,20 +8,23 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Bernstein-Cream-Teal Vollflächen-Verlauf */
-  background: linear-gradient(150deg, #FEF3C7 0%, #FFFBEB 30%, #FAF8F3 60%, #E8F5F5 100%);
   padding: var(--space-4);
+  background-color: var(--paper);
+  /* Karo-Muster für Lehrer-Seiten */
+  background-image:
+    repeating-linear-gradient(rgba(30, 58, 138, 0.07) 1px, transparent 1px),
+    repeating-linear-gradient(90deg, rgba(30, 58, 138, 0.07) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
-/* Zentrierte Karte – schwebt über dem Hintergrund */
+/* Zentrierte Karte */
 .login-karte {
-  background: var(--surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xl);
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  box-shadow: 6px 6px 0 var(--hot);
   padding: var(--space-10) var(--space-8);
   width: 100%;
   max-width: 400px;
-  border: 1px solid rgba(217, 119, 6, 0.08);
 }
 
 /* Branding oben */
@@ -29,36 +33,41 @@
   margin-bottom: var(--space-8);
 }
 
+/* Emoji-Sticker – rotiert, wie aufgeklebt */
 .login-brand-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 68px;
-  height: 68px;
-  background: linear-gradient(135deg, var(--primary-100), var(--primary-50));
-  border: 2px solid var(--primary-200);
-  border-radius: var(--radius-lg);
+  width: 72px;
+  height: 72px;
+  background: var(--sun);
+  border: 2.5px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
   margin-bottom: var(--space-4);
-  font-size: 34px;
+  font-size: 36px;
   line-height: 1;
+  transform: rotate(-2deg);
+  display: inline-flex;
 }
 
 .login-titel {
-  font-family: var(--font-heading);
-  font-size: var(--text-3xl);
-  font-weight: 700;
-  background: linear-gradient(135deg, #D97706 20%, #EA580C 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  color: var(--primary-700);
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  font-weight: 800;
+  color: var(--ink);
   margin: 0 0 var(--space-1);
+  letter-spacing: -0.03em;
+  line-height: 1;
 }
 
 .login-untertitel {
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--hot);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin: var(--space-2) 0 0;
 }
 
 /* Formular */
@@ -71,79 +80,78 @@
 .login-formfeld {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--space-2);
 }
 
 .login-formfeld label {
+  font-family: var(--font-display);
   font-size: var(--text-sm);
-  font-weight: 500;
-  color: var(--neutral-700);
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: 0.01em;
 }
 
 .login-formfeld input[type='email'] {
-  padding: 10px 14px;
+  padding: 11px 14px;
   font-size: var(--text-base);
-  font-family: var(--font-sans);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface);
-  color: var(--text-heading);
-  transition: border-color var(--transition), box-shadow var(--transition);
+  font-family: var(--font-body);
+  border: 2.5px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  transition: box-shadow 60ms;
   outline: none;
+  border-radius: 0;
 }
 
 .login-formfeld input[type='email']::placeholder {
-  color: var(--neutral-400);
+  color: rgba(30, 58, 138, 0.35);
 }
 
 .login-formfeld input[type='email']:focus {
-  border-color: var(--primary-500);
-  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.12);
+  box-shadow: 4px 4px 0 var(--hot);
 }
 
-/* Login-Button – volle Breite, Gradient */
+/* Login-Button – volle Breite, Primary */
 .login-btn {
   width: 100%;
-  padding: var(--space-3) var(--space-6);
-  font-family: var(--font-sans);
+  padding: 14px var(--space-6);
+  font-family: var(--font-display);
   font-size: var(--text-base);
-  font-weight: 600;
-  background: linear-gradient(135deg, #D97706 0%, #EA580C 100%);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius-md);
+  font-weight: 800;
+  background: var(--ink);
+  color: var(--paper);
+  border: 2.5px solid var(--ink);
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(217,119,6,0.35);
-  transition:
-    background var(--transition),
-    transform var(--transition),
-    box-shadow var(--transition);
+  box-shadow: 4px 4px 0 var(--hot);
+  transition: transform 60ms ease-out, box-shadow 60ms ease-out;
+  letter-spacing: 0.01em;
 }
 
 .login-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #B45309 0%, #C2410C 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(217,119,6,0.45);
+  background: #152a6e;
+}
+
+.login-btn:active:not(:disabled) {
+  transform: translate(4px, 4px);
+  box-shadow: none;
 }
 
 .login-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
-  transform: none;
   box-shadow: none;
 }
 
 /* Fehlermeldung */
 .login-fehler {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-2);
   padding: 10px 14px;
   background: var(--fehler-hell);
-  border: 1px solid var(--fehler-border);
-  border-radius: var(--radius-md);
-  color: var(--fehler);
+  border: 2.5px solid var(--hot);
+  box-shadow: 2px 2px 0 var(--ink);
+  color: var(--hot);
+  font-family: var(--font-body);
   font-size: var(--text-sm);
+  font-weight: 500;
   line-height: 1.5;
 }
 
@@ -157,29 +165,33 @@
   gap: var(--space-4);
 }
 
+/* Haken-Icon als Sticker */
 .login-bestaetigung-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
-  background: var(--erfolg-hell);
-  border: 2px solid var(--erfolg-border);
-  border-radius: var(--radius-full);
-  font-size: 26px;
+  width: 64px;
+  height: 64px;
+  background: var(--lime);
+  border: 2.5px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  font-size: 28px;
   line-height: 1;
+  transform: rotate(-3deg);
 }
 
 .login-bestaetigung-text {
-  font-family: var(--font-heading);
+  font-family: var(--font-display);
   font-size: var(--text-xl);
-  color: var(--text-heading);
-  font-weight: 600;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.02em;
 }
 
 .login-bestaetigung-hinweis {
+  font-family: var(--font-body);
   font-size: var(--text-sm);
-  color: var(--text-muted);
+  color: var(--ink-soft);
   line-height: 1.6;
   max-width: 300px;
 }
@@ -188,8 +200,11 @@
 @media (max-width: 480px) {
   .login-karte {
     padding: var(--space-8) var(--space-5);
-    border-radius: var(--radius-md);
-    box-shadow: none;
-    border: 1px solid var(--border);
+    box-shadow: 4px 4px 0 var(--hot);
   }
+}
+
+/* prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .login-btn { transition: none; }
 }
