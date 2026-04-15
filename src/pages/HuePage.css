@@ -1,82 +1,74 @@
 /* ============================================================
-   Schüler-HÜ-Seite – freundliches, großzügiges Layout
-   Die wichtigste Seite: Schüler 10–14 Jahre, oft Mobilgerät
+   Schüler-HÜ-Seite – Retro-Edutainment-Look
+   Zielgruppe: 10–14 Jahre, mobile first, laut + bunt
+   Hintergrund: Riso-Punkte (Magenta), Karten: harte Cobalt-Rahmen
    ============================================================ */
 
-/* Seitenrahmen */
+/* Seitenrahmen – Riso-Punkte als Schüler-Hintergrund */
 .hue-container {
-  max-width: 680px;
+  max-width: 640px;
   margin: 0 auto;
   padding: var(--space-6) var(--space-4) var(--space-16);
+  background-color: var(--paper);
+  background-image: radial-gradient(
+    circle,
+    rgba(219, 39, 119, 0.13) 1.5px,
+    transparent 1.5px
+  );
+  background-size: 12px 12px;
+  min-height: 100svh;
 }
 
 @media (min-width: 640px) {
   .hue-container {
     padding-left: var(--space-8);
     padding-right: var(--space-8);
-    padding-top: var(--space-8);
+    padding-top: var(--space-10);
   }
 }
 
 /* ============================================================
-   Kopfzeile
+   Kopfzeile – großes plakatives Heading
    ============================================================ */
 .hue-header {
   text-align: center;
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-8);
 }
 
 .hue-header h1 {
-  font-family: var(--font-heading);
-  font-size: var(--text-3xl);
-  font-weight: 700;
-  background: linear-gradient(135deg, #D97706 20%, #EA580C 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  color: var(--primary-700);
-  margin: 0 0 var(--space-1);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(48px, 13vw, 80px);
+  color: var(--ink);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  margin-bottom: var(--space-3);
 }
 
 .hue-header p {
-  font-size: var(--text-base);
-  color: var(--secondary-600);
-  font-weight: 500;
-  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--hot);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 /* ============================================================
-   Lade-Skeleton (ersetzt Spinner)
+   Lade-Skeleton
    ============================================================ */
 .hue-ladeindikator {
   padding: var(--space-8) 0;
 }
 
 .hue-skeleton-card {
-  background: var(--surface);
-  border-radius: var(--radius-lg);
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
   padding: var(--space-6);
   margin-bottom: var(--space-4);
-  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-}
-
-/* Fallback-Spinner (wird in JSX nicht mehr genutzt, aber behalten) */
-.hue-spinner {
-  display: inline-block;
-  width: 24px;
-  height: 24px;
-  border: 2.5px solid var(--primary-100);
-  border-top-color: var(--primary-500);
-  border-radius: 50%;
-  animation: drehen 0.7s linear infinite;
-  flex-shrink: 0;
-}
-
-@keyframes drehen {
-  to { transform: rotate(360deg); }
 }
 
 /* ============================================================
@@ -85,31 +77,24 @@
 .hue-fehler {
   padding: var(--space-4) var(--space-5);
   background: var(--fehler-hell);
-  border: 1px solid var(--fehler-border);
-  border-radius: var(--radius-md);
-  color: var(--fehler);
+  border: 2.5px solid var(--hot);
+  box-shadow: 3px 3px 0 var(--ink);
+  color: var(--hot);
+  font-family: var(--font-body);
   font-size: var(--text-sm);
+  font-weight: 500;
   line-height: 1.5;
 }
 
 /* ============================================================
-   Schülernummer – prominente Eingabe
+   Klasse + Katalognummer – prominente Eingabe
    ============================================================ */
 .nummern-formular {
-  background: var(--surface);
-  border: 1.5px solid var(--secondary-200);
-  border-radius: var(--radius-lg);
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  box-shadow: 5px 5px 0 var(--hot);
   padding: var(--space-6);
-  box-shadow: var(--shadow-sm);
-}
-
-.nummern-formular label {
-  display: block;
-  font-size: var(--text-lg);
-  font-weight: 500;
-  color: var(--text-heading);
-  margin-bottom: var(--space-4);
-  line-height: 1.4;
+  margin-bottom: var(--space-6);
 }
 
 /* Zwei-Felder-Layout: Klasse + Katalognummer nebeneinander */
@@ -117,6 +102,7 @@
   display: flex;
   gap: var(--space-4);
   margin-bottom: var(--space-4);
+  flex-wrap: wrap;
 }
 
 .nummern-feld {
@@ -126,46 +112,51 @@
 }
 
 .nummern-feld label {
+  font-family: var(--font-display);
+  font-weight: 700;
   font-size: var(--text-sm);
-  font-weight: 500;
-  color: var(--text-heading);
-  margin-bottom: 0;
+  color: var(--ink);
+  letter-spacing: 0.01em;
 }
 
-/* Klasse-Input: schmaler Text-Input */
+/* Klasse-Input (z. B. "2a") */
 .klasse-input {
-  width: 80px;
+  width: 88px;
   padding: 12px 14px;
+  font-family: var(--font-mono);
   font-size: var(--text-xl);
-  font-family: var(--font-sans);
-  font-weight: 500;
+  font-weight: 700;
   text-align: center;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-md);
+  border: 2.5px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
   outline: none;
   text-transform: lowercase;
-  transition: border-color var(--transition), box-shadow var(--transition);
+  transition: box-shadow 60ms;
   box-sizing: border-box;
+  border-radius: 0;
 }
 
 .klasse-input:focus {
-  border-color: var(--primary-500);
-  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.12);
+  box-shadow: 4px 4px 0 var(--hot);
 }
 
-/* Katalog-Input: Zahl ohne Spinner */
+/* Katalognummer-Input (1–40) */
 .katalog-input {
   width: 100px;
   padding: 12px 14px;
+  font-family: var(--font-mono);
   font-size: var(--text-xl);
-  font-family: var(--font-sans);
-  font-weight: 500;
+  font-weight: 700;
   text-align: center;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-md);
+  border: 2.5px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
   outline: none;
-  transition: border-color var(--transition), box-shadow var(--transition);
+  transition: box-shadow 60ms;
   box-sizing: border-box;
+  border-radius: 0;
+  /* Pfeile bei number-Input entfernen */
   -moz-appearance: textfield;
 }
 
@@ -175,91 +166,43 @@
 }
 
 .katalog-input:focus {
-  border-color: var(--primary-500);
-  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.12);
+  box-shadow: 4px 4px 0 var(--hot);
 }
 
 /* Fehlermeldung bei ungültiger Eingabe */
 .nummern-fehler {
+  font-family: var(--font-body);
   font-size: var(--text-sm);
-  color: var(--fehler);
+  font-weight: 600;
+  color: var(--hot);
   margin: 0 0 var(--space-3);
 }
 
-/* Weiter-Button: volle Breite */
+/* Weiter-Button – volle Breite, Primary-Style */
 .nummern-weiter-btn {
+  display: block;
   width: 100%;
-  padding: 12px var(--space-5);
-  font-family: var(--font-sans);
-  font-size: var(--text-base);
-  font-weight: 600;
-  background: linear-gradient(135deg, #D97706 0%, #EA580C 100%);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius-md);
+  padding: 16px var(--space-6);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 800;
+  background: var(--ink);
+  color: var(--paper);
+  border: 2.5px solid var(--ink);
   cursor: pointer;
-  min-height: 48px;
-  transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
-  box-shadow: 0 2px 8px rgba(217,119,6,0.35);
+  min-height: 56px;
+  box-shadow: 4px 4px 0 var(--hot);
+  transition: transform 60ms ease-out, box-shadow 60ms ease-out;
+  letter-spacing: 0.01em;
 }
 
 .nummern-weiter-btn:hover {
-  background: linear-gradient(135deg, #B45309 0%, #C2410C 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(217,119,6,0.45);
+  background: #152a6e;
 }
 
-.nummern-eingabe {
-  display: flex;
-  gap: var(--space-3);
-  align-items: stretch;
-}
-
-.nummern-eingabe input[type='number'] {
-  width: 100px;
-  padding: 12px 14px;
-  font-size: var(--text-xl);
-  font-family: var(--font-sans);
-  font-weight: 500;
-  text-align: center;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-md);
-  outline: none;
-  transition: border-color var(--transition), box-shadow var(--transition);
-  box-sizing: border-box;
-  -moz-appearance: textfield;
-}
-
-.nummern-eingabe input[type='number']::-webkit-outer-spin-button,
-.nummern-eingabe input[type='number']::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-}
-
-.nummern-eingabe input[type='number']:focus {
-  border-color: var(--primary-500);
-  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.12);
-}
-
-.nummern-eingabe button {
-  flex: 1;
-  padding: 12px var(--space-5);
-  font-family: var(--font-sans);
-  font-size: var(--text-base);
-  font-weight: 600;
-  background: linear-gradient(135deg, #D97706 0%, #EA580C 100%);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  min-height: 48px;
-  transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
-  box-shadow: 0 2px 8px rgba(217,119,6,0.35);
-}
-
-.nummern-eingabe button:hover {
-  background: linear-gradient(135deg, #B45309 0%, #C2410C 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(217,119,6,0.45);
+.nummern-weiter-btn:active {
+  transform: translate(4px, 4px);
+  box-shadow: none;
 }
 
 /* ============================================================
@@ -270,19 +213,19 @@
 }
 
 .ergebnis h2 {
-  font-family: var(--font-heading);
-  font-size: var(--text-xl);
-  font-weight: 600;
-  color: var(--text-heading);
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  color: var(--ink);
   margin: 0 0 var(--space-5);
 }
 
-/* Lesetext – Teal als dekorativer Akzent */
+/* Lesetext – Cobalt-Rahmen, Magenta-Shadow */
 .lesetext {
-  background: var(--neutral-50);
-  border-left: 3px solid var(--secondary-400);
-  border-radius: 0 var(--radius-md) var(--radius-md) 0;
-  padding: var(--space-4) var(--space-5);
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--hot);
+  padding: var(--space-5);
   margin-bottom: var(--space-6);
 }
 
@@ -290,80 +233,58 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin-bottom: var(--space-2);
-  color: var(--secondary-600);
-  font-size: var(--text-xs);
+  margin-bottom: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 11px;
   font-weight: 700;
+  color: var(--hot);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-family: var(--font-sans);
-}
-
-.lesetext strong::before {
-  content: '';
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  background: var(--secondary-500);
-  border-radius: 50%;
-  flex-shrink: 0;
+  letter-spacing: 0.12em;
 }
 
 .lesetext p {
-  font-size: var(--text-sm);
-  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--ink-soft);
   line-height: 1.7;
 }
 
-/* Sektion-Header – farbig mit vertikalem Akzent-Balken */
+/* Abschnitt-Titel (Fragen / Lückentexte) */
 .fragen-titel {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--secondary-600);
+  letter-spacing: 0.12em;
+  color: var(--hot);
   margin-bottom: var(--space-4);
-  font-family: var(--font-sans);
-}
-
-.fragen-titel::before {
-  content: '';
-  display: inline-block;
-  width: 4px;
-  height: 14px;
-  background: var(--secondary-500);
-  border-radius: 2px;
-  flex-shrink: 0;
 }
 
 /* ============================================================
-   Frage-Block – eine Frage pro Card mit Bernstein-Akzentrand
+   Frage-Block
    ============================================================ */
-.frage {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--primary-300);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
-  margin-bottom: var(--space-4);
-  box-shadow: var(--shadow-sm);
-  transition: box-shadow var(--transition), transform var(--transition);
+@keyframes frageRein {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.frage:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
+.frage {
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--hot);
+  padding: var(--space-5);
+  margin-bottom: var(--space-5);
+  animation: frageRein 0.3s ease-out both;
 }
 
 .fragetext {
-  font-size: var(--text-base);
-  font-weight: 500;
-  color: var(--text-heading);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(18px, 3.5vw, 22px);
+  color: var(--ink);
   margin: 0 0 var(--space-4);
-  line-height: 1.5;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
 }
 
 /* ============================================================
@@ -382,134 +303,144 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-5);
+  border: 2.5px solid var(--ink);
+  background: var(--paper);
   cursor: pointer;
+  font-family: var(--font-body);
   font-size: var(--text-base);
-  color: var(--text);
-  background: var(--neutral-50);
-  transition:
-    background var(--transition),
-    border-color var(--transition),
-    transform var(--transition);
-  min-height: 48px;
+  font-weight: 500;
+  color: var(--ink);
+  min-height: 52px;
   line-height: 1.4;
+  transition: transform 60ms ease-out, box-shadow 60ms ease-out;
 }
 
-.antwort-option:hover:not(.korrekt):not(.falsch) {
-  background: var(--primary-50);
-  border-color: var(--primary-300);
-  transform: translateY(-1px);
+.antwort-option:hover:not(.korrekt):not(.falsch):not(.vorschau) {
+  background: rgba(30, 58, 138, 0.04);
+  box-shadow: 3px 3px 0 rgba(30, 58, 138, 0.25);
 }
 
-/* Ausgewählt vor Auswertung – Bernstein */
+.antwort-option:active:not(.korrekt):not(.falsch):not(.vorschau) {
+  transform: translate(3px, 3px);
+  box-shadow: none;
+}
+
+/* Ausgewählt vor Auswertung */
 .antwort-option.gewaehlt {
-  background: var(--primary-50);
-  border-color: var(--primary-500);
-  color: var(--primary-700);
-  font-weight: 500;
+  background: var(--ink);
+  color: var(--paper);
+  box-shadow: 3px 3px 0 var(--hot);
 }
 
-/* Korrekt (nach Auswertung) */
+/* Richtige Antwort nach Auswertung */
 .antwort-option.korrekt {
-  background: var(--erfolg-hell);
-  border-color: var(--erfolg-border);
-  color: var(--erfolg);
-  font-weight: 500;
+  background: var(--lime);
+  color: var(--ink);
+  border-color: var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
   cursor: default;
 }
 
-/* Falsch (nach Auswertung) */
+/* Falsch gewählt nach Auswertung */
 .antwort-option.falsch {
-  background: var(--fehler-hell);
-  border-color: var(--fehler-border);
-  color: var(--fehler);
-  font-weight: 500;
+  background: var(--hot);
+  color: var(--paper);
+  border-color: var(--hot);
   cursor: default;
 }
 
+/* Vorschau in App.jsx (nicht klickbar) */
+.antwort-option.vorschau {
+  cursor: default;
+  border-color: rgba(30, 58, 138, 0.25);
+  background: rgba(30, 58, 138, 0.03);
+}
+
+/* Buchstaben-Badge */
 .buchstabe {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  background: var(--neutral-200);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-xs);
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--ink);
+  font-family: var(--font-mono);
+  font-size: 12px;
   font-weight: 700;
-  color: var(--neutral-600);
+  color: var(--ink);
   flex-shrink: 0;
-  font-family: var(--font-sans);
-  transition: background var(--transition), color var(--transition);
+  background: var(--paper);
 }
 
 .antwort-option.gewaehlt .buchstabe {
-  background: var(--primary-500);
-  color: #fff;
+  background: var(--hot);
+  color: var(--paper);
+  border-color: var(--hot);
 }
 
 .antwort-option.korrekt .buchstabe {
-  background: var(--erfolg);
-  color: #fff;
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
 }
 
 .antwort-option.falsch .buchstabe {
-  background: var(--fehler);
-  color: #fff;
+  background: var(--paper);
+  color: var(--hot);
+  border-color: var(--paper);
 }
 
 /* ============================================================
-   Lückentext – inline im Satzfluss, Teal-Akzentrand
+   Lückentext – inline im Satzfluss
    ============================================================ */
 .lueckentext-frage {
   display: block;
-  border-left-color: var(--secondary-300); /* Teal statt Bernstein für Lückentexte */
 }
 
 .lueckentext-frage .fragetext {
   margin-bottom: 0;
   font-size: var(--text-base);
-  line-height: 2;
+  font-family: var(--font-body);
+  font-weight: 500;
+  line-height: 2.2;
 }
 
-/* Underline-Style statt Box – Teal als dekorativer Akzent */
 .luecken-input {
   display: inline-block;
-  padding: 2px 4px;
+  padding: 2px 8px;
   border: none;
-  border-bottom: 2px solid var(--secondary-400);
-  border-radius: 0;
+  border-bottom: 3px solid var(--ink);
+  font-family: var(--font-mono);
   font-size: var(--text-base);
-  font-family: var(--font-sans);
-  color: var(--secondary-700);
+  font-weight: 700;
+  color: var(--ink);
   background: transparent;
   margin: 0 var(--space-1);
   outline: none;
-  transition: border-color var(--transition);
+  transition: border-color 60ms;
   min-width: 80px;
+  border-radius: 0;
 }
 
 .luecken-input:focus {
-  border-bottom-color: var(--secondary-600);
+  border-bottom-color: var(--hot);
 }
 
 .luecken-input::placeholder {
-  color: var(--neutral-400);
+  color: rgba(30, 58, 138, 0.35);
   font-style: italic;
+  font-weight: 400;
 }
 
 .luecken-input.korrekt {
   border-bottom-color: var(--erfolg);
   color: var(--erfolg);
-  background: transparent;
 }
 
 .luecken-input.falsch {
-  border-bottom-color: var(--fehler);
-  color: var(--fehler);
-  background: transparent;
+  border-bottom-color: var(--hot);
+  color: var(--hot);
 }
 
 .luecken-input:disabled {
@@ -518,87 +449,82 @@
 
 .luecken-korrektur {
   display: inline-block;
+  font-family: var(--font-mono);
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: 700;
   margin-left: var(--space-2);
 }
 
-.luecken-korrektur.korrekt {
-  color: var(--erfolg);
-}
-
-.luecken-korrektur.falsch {
-  color: var(--fehler);
-}
+.luecken-korrektur.korrekt { color: var(--erfolg); }
+.luecken-korrektur.falsch  { color: var(--hot); }
 
 /* ============================================================
-   Auswerten-Button – groß und einladend
+   Auswerten-Button – groß, einladend, Schüler-freundlich
    ============================================================ */
 .auswerten-btn {
   display: block;
   width: 100%;
   margin-top: var(--space-6);
-  padding: var(--space-4) var(--space-6);
-  font-family: var(--font-sans);
-  font-size: var(--text-base);
-  font-weight: 600;
-  background: linear-gradient(135deg, #D97706 0%, #EA580C 100%);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius-md);
+  padding: 18px var(--space-6);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 800;
+  background: var(--ink);
+  color: var(--paper);
+  border: 2.5px solid var(--ink);
   cursor: pointer;
-  min-height: 52px;
-  box-shadow: 0 2px 8px rgba(217,119,6,0.35);
-  transition:
-    background var(--transition),
-    transform var(--transition),
-    box-shadow var(--transition);
+  min-height: 60px;
+  box-shadow: 4px 4px 0 var(--hot);
+  transition: transform 60ms ease-out, box-shadow 60ms ease-out;
+  letter-spacing: 0.01em;
 }
 
 .auswerten-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #B45309 0%, #C2410C 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(217,119,6,0.45);
+  background: #152a6e;
+}
+
+.auswerten-btn:active:not(:disabled) {
+  transform: translate(4px, 4px);
+  box-shadow: none;
 }
 
 .auswerten-btn:disabled {
-  opacity: 0.55;
+  opacity: 0.45;
   cursor: not-allowed;
-  transform: none;
   box-shadow: none;
 }
 
 /* ============================================================
-   Ergebnis-Zusammenfassung – großes Prozent-Badge + Konfetti-Vibe
+   Ergebnis-Zusammenfassung – Stempel-Belohnungs-Moment
    ============================================================ */
 
-/* Einspring-Animation für das Prozent-Badge */
 @keyframes erfolgBounce {
-  0%   { transform: scale(0.3) rotate(-8deg); opacity: 0; }
-  55%  { transform: scale(1.2) rotate(3deg); }
-  75%  { transform: scale(0.92) rotate(-1deg); }
-  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  0%   { transform: scale(0.3); opacity: 0; }
+  55%  { transform: scale(1.1); }
+  75%  { transform: scale(0.95); }
+  100% { transform: scale(1); opacity: 1; }
 }
 
-/* Konfetti-Punkte links – via box-shadow Trick */
-@keyframes konfettiLinks {
-  0%   { transform: translateY(0) translateX(0); opacity: 1; }
-  100% { transform: translateY(-70px) translateX(-30px); opacity: 0; }
+@keyframes stempelRein {
+  from { opacity: 0; transform: rotate(-8deg) scale(2.2); }
+  to   { opacity: 1; transform: rotate(-8deg) scale(1); }
 }
 
-/* Konfetti-Punkte rechts */
-@keyframes konfettiRechts {
-  0%   { transform: translateY(0) translateX(0); opacity: 1; }
-  100% { transform: translateY(-70px) translateX(30px); opacity: 0; }
-}
-
-/* Einblend-Animation für den Text */
 @keyframes slideHochEin {
   from { transform: translateY(10px); opacity: 0; }
   to   { transform: translateY(0); opacity: 1; }
 }
 
-/* Wrapper: Badge oben, Textzeile darunter, zentriert */
+@keyframes konfettiLinks {
+  0%   { transform: translateY(0) translateX(0); opacity: 1; }
+  100% { transform: translateY(-80px) translateX(-40px); opacity: 0; }
+}
+
+@keyframes konfettiRechts {
+  0%   { transform: translateY(0) translateX(0); opacity: 1; }
+  100% { transform: translateY(-80px) translateX(40px); opacity: 0; }
+}
+
 .ergebnis-zusammenfassung-wrapper {
   margin-top: var(--space-6);
   display: flex;
@@ -609,94 +535,108 @@
   overflow: visible;
 }
 
-/* Konfetti-Punkte links beim Perfekt-Zustand */
+/* Konfetti links – neue Palette: Hot, Sun, Lime, Ink */
 .ergebnis-zusammenfassung-wrapper.perfekt::before {
   content: '';
   position: absolute;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--primary-400);
-  top: 24px;
-  left: calc(50% - 70px);
+  width: 10px;
+  height: 10px;
+  background: var(--hot);
+  top: 28px;
+  left: calc(50% - 80px);
   box-shadow:
-    -28px 16px 0 4px var(--secondary-400),
-    -12px -20px 0 3px var(--primary-300),
-    -50px -8px 0 4px var(--erfolg),
-    -36px 36px 0 3px var(--secondary-300);
+    -30px 18px 0 4px var(--sun),
+    -14px -22px 0 3px var(--lime),
+    -55px -10px 0 4px var(--hot),
+    -40px 40px 0 3px var(--ink-soft);
   animation: konfettiLinks 1.0s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards;
   opacity: 0;
+  border-radius: 2px;
 }
 
-/* Konfetti-Punkte rechts beim Perfekt-Zustand */
+/* Konfetti rechts */
 .ergebnis-zusammenfassung-wrapper.perfekt::after {
   content: '';
   position: absolute;
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  background: var(--secondary-400);
-  top: 24px;
-  right: calc(50% - 70px);
+  width: 10px;
+  height: 10px;
+  background: var(--sun);
+  top: 28px;
+  right: calc(50% - 80px);
   box-shadow:
-    28px 12px 0 4px var(--primary-400),
-    12px -24px 0 3px var(--secondary-300),
-    50px -10px 0 4px var(--primary-300),
-    36px 32px 0 3px var(--erfolg-border);
+    30px 14px 0 4px var(--lime),
+    14px -26px 0 3px var(--hot),
+    55px -12px 0 4px var(--sun),
+    40px 36px 0 3px var(--ink);
   animation: konfettiRechts 1.0s cubic-bezier(0.22, 1, 0.36, 1) 0.4s forwards;
   opacity: 0;
+  border-radius: 0;
 }
 
-/* Kreisförmiges Prozent-Badge mit Einsprung-Animation */
+/* Prozent-Badge – normal: großes JetBrains-Mono-Number */
 .ergebnis-prozent {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 104px;
-  height: 104px;
-  border-radius: var(--radius-full);
-  font-family: var(--font-sans);
-  font-size: var(--text-2xl);
+  font-family: var(--font-mono);
   font-weight: 700;
-  background: var(--warnung-hell);
-  border: 3px solid var(--warnung-border);
-  color: var(--primary-700);
+  font-size: 80px;
+  color: var(--hot);
+  line-height: 1;
   animation: erfolgBounce 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
+/* Perfekt: Stempel-Effekt – rotiert rein, Gelb-Hintergrund */
 .ergebnis-prozent.perfekt {
-  background: var(--erfolg-hell);
-  border: 3px solid var(--erfolg-border);
-  color: var(--erfolg);
-  box-shadow: 0 0 0 6px rgba(101, 163, 13, 0.12);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 52px;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  background: var(--sun);
+  border: 4px solid var(--ink);
+  padding: 14px 32px;
+  /* Wichtig: transform im animation-Endwert, nicht direkt gesetzt */
+  outline: 3px solid var(--hot);
+  outline-offset: 3px;
+  animation: stempelRein 0.35s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
-/* Textzeile mit Originalinhalt – slideUp-Animation */
+/* Text unter dem Badge */
 .ergebnis-zusammenfassung {
-  padding: var(--space-4) var(--space-5);
-  background: var(--warnung-hell);
-  border: 1px solid var(--warnung-border);
-  border-radius: var(--radius-md);
-  font-size: var(--text-base);
-  font-weight: 600;
-  text-align: center;
-  color: var(--primary-700);
   width: 100%;
+  padding: var(--space-4) var(--space-5);
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--hot);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-lg);
+  text-align: center;
+  color: var(--ink);
   animation: slideHochEin 0.4s ease-out 0.4s both;
 }
 
 .ergebnis-zusammenfassung.perfekt {
-  background: var(--erfolg-hell);
-  border-color: var(--erfolg-border);
-  color: var(--erfolg);
+  background: var(--sun);
+  border-color: var(--ink);
+  color: var(--ink);
 }
 
-/* Animationen für Nutzer mit Bewegungsempfindlichkeit deaktivieren */
+/* ============================================================
+   prefers-reduced-motion
+   ============================================================ */
 @media (prefers-reduced-motion: reduce) {
   .ergebnis-prozent,
   .ergebnis-zusammenfassung,
+  .frage,
+  .nummern-weiter-btn,
+  .auswerten-btn {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
   .ergebnis-zusammenfassung-wrapper.perfekt::before,
   .ergebnis-zusammenfassung-wrapper.perfekt::after {
     animation: none;
+    display: none;
   }
 }

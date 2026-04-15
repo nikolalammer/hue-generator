@@ -1,76 +1,47 @@
 /* ============================================================
    Aufgabolino – Design-System
-   Primary: Bernstein #D97706 | Secondary: Teal #2D7D7B
-   Body: Inter | Überschriften: Lora
+   90s Schulheft / Retro-Edutainment
+   Display: Bricolage Grotesque | Body: Figtree | Mono: JetBrains Mono
+   Ink: #1E3A8A | Hot: #DB2777 | Sun: #FDE047 | Paper: #FAF5E6
    ============================================================ */
 
 :root {
-  /* --- Primary: warmes Bernstein/Senf --- */
-  --primary-50:  #FFFBEB;
-  --primary-100: #FEF3C7;
-  --primary-200: #FDE68A;
-  --primary-300: #FCD34D;
-  --primary-400: #FBBF24;
-  --primary-500: #D97706;
-  --primary-600: #B45309;
-  --primary-700: #92400E;
-  --primary-800: #78350F;
-  --primary-900: #451A03;
-
-  /* --- Secondary: dusky Teal (Sekundärakzent, Borders, Deko) --- */
-  --secondary-50:  #E8F5F5;
-  --secondary-100: #C8E8E7;
-  --secondary-200: #9DD4D3;
-  --secondary-300: #6BBFBE;
-  --secondary-400: #45ADAC;
-  --secondary-500: #2D7D7B;
-  --secondary-600: #236160;
-  --secondary-700: #1A4948;
-
-  /* --- Neutralpalette – wärmere Graustufen (Sepia-Stich) --- */
-  --neutral-50:  #FAFAF8;
-  --neutral-100: #F5F4F0;
-  --neutral-200: #E8E6E0;
-  --neutral-300: #D5D2CA;
-  --neutral-400: #AAA79E;
-  --neutral-500: #787570;
-  --neutral-600: #58554F;
-  --neutral-700: #3D3B36;
-  --neutral-800: #2A2825;
-  --neutral-900: #171614;
+  /* --- Kern-Palette --- */
+  --ink:      #1E3A8A;   /* Cobalt – Haupttinte, Rahmen, Headings */
+  --ink-soft: #2D4FA3;   /* gedämpftes Cobalt – Fließtext */
+  --hot:      #DB2777;   /* Magenta – scharfer Akzent, Offset-Shadow */
+  --sun:      #FDE047;   /* Sonnengelb – Belohnungsmomente */
+  --paper:    #FAF5E6;   /* Elfenbein – Papiergrund, niemals reines Weiß */
+  --lime:     #A3E635;   /* Chartreuse – Schüler-Seite, Englisch-Fach */
 
   /* --- Semantische Farben --- */
-  --erfolg:        #65A30D;
-  --erfolg-hell:   #ECFCCB;
-  --erfolg-border: #BEF264;
+  --erfolg:        #16A34A;
+  --erfolg-hell:   #DCFCE7;
+  --erfolg-border: #86EFAC;
 
-  --warnung:        #D97706;
-  --warnung-hell:   #FFFBEB;
-  --warnung-border: #FDE68A;
-
-  --fehler:        #DC2626;
-  --fehler-hell:   #FEF2F2;
-  --fehler-border: #FCA5A5;
-
-  --info:        #0284C7;
-  --info-hell:   #F0F9FF;
-  --info-border: #BAE6FD;
+  --fehler:        var(--hot);
+  --fehler-hell:   #FCE7F3;
+  --fehler-border: #F9A8D4;
 
   /* --- Oberflächen --- */
-  --bg:      #FAF8F3;   /* warmes Cream */
-  --surface: #FFFFFF;
-  --border:  var(--neutral-200);
+  --bg:      var(--paper);
+  --surface: var(--paper);
+  --border:  rgba(30, 58, 138, 0.18);
 
   /* --- Text --- */
-  --text:         var(--neutral-700);
-  --text-muted:   var(--neutral-500);
-  --text-heading: var(--neutral-900);
+  --text:         var(--ink-soft);
+  --text-muted:   rgba(30, 58, 138, 0.5);
+  --text-heading: var(--ink);
 
   /* --- Typografie --- */
-  --font-sans:    'Inter', system-ui, -apple-system, sans-serif;
-  --font-heading: 'Lora', Georgia, serif;
-  --font-mono:    ui-monospace, Consolas, monospace;
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body:    'Figtree', system-ui, sans-serif;
+  /* Aliases für bestehende Code-Referenzen */
+  --font-sans:    'Figtree', system-ui, sans-serif;
+  --font-heading: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
 
+  /* --- Schriftgrößen --- */
   --text-xs:   12px;
   --text-sm:   14px;
   --text-base: 16px;
@@ -93,25 +64,52 @@
   --space-12: 48px;
   --space-16: 64px;
 
-  /* --- Schatten --- */
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
-  --shadow-xl: 0 20px 60px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.08);
+  /* --- Flat Offset-Shadows (kein Gauß'sches Weichzeichnen mehr) --- */
+  --shadow-sm: 2px 2px 0 var(--ink);
+  --shadow-md: 3px 3px 0 var(--hot);
+  --shadow-lg: 4px 4px 0 var(--hot);
+  --shadow-xl: 6px 6px 0 var(--hot);
 
-  /* --- Accent-Aliases (= Bernstein/Primary) – für Abwärtskompatibilität --- */
-  --accent-500: var(--primary-500);
-  --accent-600: var(--primary-600);
-  --accent-700: var(--primary-700);
-
-  /* --- Radii --- */
-  --radius-sm:   6px;
-  --radius-md:   8px;
-  --radius-lg:   12px;
-  --radius-full: 9999px;
+  /* --- Radii – kantig, kein rounded-2xl-Look --- */
+  --radius-sm:   0px;
+  --radius-md:   0px;
+  --radius-lg:   0px;
+  --radius-full: 0px;
 
   /* --- Transitions --- */
-  --transition: 150ms ease-out;
+  --transition: 60ms ease-out;
+
+  /* --- Aliases für ältere CSS-Referenzen --- */
+  --primary-500: var(--ink);    /* accent-color in VorschauEditor */
+  --primary-700: var(--ink);
+  --primary-50:  rgba(30, 58, 138, 0.04);
+  --primary-100: rgba(30, 58, 138, 0.08);
+  --primary-200: rgba(30, 58, 138, 0.15);
+  --primary-300: rgba(30, 58, 138, 0.25);
+  --secondary-50:  rgba(30, 58, 138, 0.04);
+  --secondary-200: rgba(30, 58, 138, 0.15);
+  --secondary-300: rgba(30, 58, 138, 0.25);
+  --secondary-400: var(--ink-soft);
+  --secondary-500: var(--ink);
+  --secondary-600: var(--ink);
+  --secondary-700: var(--ink);
+  --neutral-50:  rgba(30, 58, 138, 0.03);
+  --neutral-100: rgba(30, 58, 138, 0.07);
+  --neutral-200: rgba(30, 58, 138, 0.12);
+  --neutral-300: rgba(30, 58, 138, 0.2);
+  --neutral-400: rgba(30, 58, 138, 0.35);
+  --neutral-500: rgba(30, 58, 138, 0.5);
+  --neutral-600: var(--ink-soft);
+  --neutral-700: var(--ink);
+  --neutral-900: var(--ink);
+  --warnung-hell:   rgba(253, 224, 71, 0.2);
+  --warnung-border: rgba(253, 224, 71, 0.6);
+  --accent-700: var(--ink);
+  --accent-500: var(--ink);
+  --accent-600: var(--ink);
+  --info:        var(--ink-soft);
+  --info-hell:   rgba(30, 58, 138, 0.05);
+  --info-border: rgba(30, 58, 138, 0.2);
 }
 
 /* ============================================================
@@ -130,11 +128,22 @@ html {
 
 body {
   margin: 0;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-size: var(--text-base);
   line-height: 1.5;
   color: var(--text);
-  background: var(--bg);
+  background: var(--paper);
+}
+
+/* Papier-Grain via SVG feTurbulence – 4% Opacity, pointer-events none */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
 }
 
 #root {
@@ -144,11 +153,12 @@ body {
 }
 
 h1, h2, h3, h4 {
-  font-family: var(--font-heading);
-  font-weight: 600;
-  color: var(--text-heading);
-  line-height: 1.2;
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1.1;
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 p {
@@ -156,7 +166,7 @@ p {
 }
 
 a {
-  color: var(--secondary-500);
+  color: var(--ink);
   text-decoration: none;
 }
 
@@ -173,66 +183,83 @@ a:hover {
   justify-content: center;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-6);
-  font-family: var(--font-sans);
+  font-family: var(--font-display);
   font-size: var(--text-sm);
-  font-weight: 500;
+  font-weight: 700;
   line-height: 1;
-  border-radius: var(--radius-md);
-  border: 1.5px solid transparent;
+  border-radius: 0;
+  border: 2.5px solid var(--ink);
   cursor: pointer;
-  transition:
-    background var(--transition),
-    border-color var(--transition),
-    color var(--transition),
-    transform var(--transition),
-    box-shadow var(--transition);
+  transition: transform 60ms ease-out, box-shadow 60ms ease-out;
   white-space: nowrap;
   text-decoration: none !important;
   user-select: none;
+  letter-spacing: 0.01em;
 }
 
 .btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
   transform: none !important;
   box-shadow: none !important;
 }
 
-/* Primär-Button: Bernstein-Koralle-Gradient */
+/* Press-Effekt: Shadow verschwindet, Button drückt sich ein */
+.btn:active:not(:disabled) {
+  transform: translate(4px, 4px) !important;
+  box-shadow: none !important;
+}
+
+/* Primary: Cobalt-Fill, Papier-Text, Magenta-Offset-Shadow */
 .btn-primary {
-  background: linear-gradient(135deg, #D97706 0%, #EA580C 100%);
-  color: #fff !important;
-  box-shadow: 0 2px 8px rgba(217,119,6,0.35);
+  background: var(--ink);
+  color: var(--paper) !important;
+  box-shadow: 4px 4px 0 var(--hot);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #B45309 0%, #C2410C 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(217,119,6,0.45);
+  background: #152a6e;
 }
 
-/* Sekundär-Button: Teal-Outline */
+/* Secondary: Papier-Fill, Cobalt-Rahmen + Shadow */
 .btn-secondary {
-  background: transparent;
-  color: var(--secondary-500) !important;
-  border-color: var(--secondary-500);
+  background: var(--paper);
+  color: var(--ink) !important;
+  box-shadow: 4px 4px 0 var(--ink);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--secondary-50);
-  transform: translateY(-1px);
+  background: rgba(30, 58, 138, 0.05);
 }
 
-/* Danger-Button */
+/* Danger: Magenta-Fill, Papier-Text */
 .btn-danger {
-  background: transparent;
-  color: var(--fehler) !important;
-  border-color: var(--fehler-border);
+  background: var(--hot);
+  color: var(--paper) !important;
+  border-color: var(--hot);
+  box-shadow: 4px 4px 0 var(--ink);
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: var(--fehler-hell);
-  border-color: var(--fehler);
+  background: #be185d;
+}
+
+/* ============================================================
+   Spinner
+   ============================================================ */
+@keyframes drehen {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid rgba(30, 58, 138, 0.15);
+  border-top-color: var(--ink);
+  border-radius: 50%;
+  animation: drehen 0.7s linear infinite;
+  flex-shrink: 0;
 }
 
 /* ============================================================
@@ -244,8 +271,8 @@ a:hover {
 }
 
 .skeleton {
-  background: var(--neutral-200);
-  border-radius: var(--radius-sm);
+  background: rgba(30, 58, 138, 0.1);
+  border-radius: 0;
   animation: skeleton-pulse 1.5s ease-in-out infinite;
 }
 
@@ -265,18 +292,25 @@ a:hover {
   height: 80px;
   width: 100%;
   margin-bottom: var(--space-3);
-  border-radius: var(--radius-md);
 }
 
 .skeleton-row {
   height: 48px;
   width: 100%;
   margin-bottom: var(--space-2);
-  border-radius: var(--radius-sm);
 }
 
 .skeleton-wrapper {
   display: flex;
   flex-direction: column;
   padding: var(--space-8) var(--space-4);
+}
+
+/* ============================================================
+   prefers-reduced-motion
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .spinner  { animation: none; }
+  .skeleton { animation: none; }
+  body::after { display: none; }
 }
