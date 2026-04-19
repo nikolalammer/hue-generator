@@ -137,6 +137,13 @@
   letter-spacing: 0.01em;
 }
 
+.formfeld-optional {
+  font-weight: 400;
+  font-family: var(--font-body);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
 .formfeld select,
 .formfeld input[type='text'] {
   width: 100%;
