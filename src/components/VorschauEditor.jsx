@@ -5,17 +5,7 @@ import './VorschauEditor.css'
 // URL der Edge Function – wird auch für Einzelaufgaben-Regenerierung genutzt
 const FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generiere-hue`
 
-/**
- * VorschauEditor – Lehrer kann generierte HÜ prüfen und bearbeiten,
- * bevor der Schüler-Link freigeschaltet wird.
- *
- * Props:
- *   ergebnis      {id, text, fragen, lueckentexte}
- *   fach          string
- *   thema         string
- *   onGespeichert function(bearbeiteteDaten) – wird nach Speichern aufgerufen
- */
-export default function VorschauEditor({ ergebnis, fach, thema, onGespeichert }) {
+export default function VorschauEditor({ ergebnis, fach, thema, fokus, schwierigkeit, onGespeichert }) {
   // Tiefer Klon damit der lokale State unabhängig vom Parent-State ist
   const [bearbeitet, setBearbeitet] = useState(() => ({
     text: ergebnis.text ?? '',
@@ -117,7 +107,7 @@ export default function VorschauEditor({ ergebnis, fach, thema, onGespeichert })
           'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
-        body: JSON.stringify({ fach, thema, einzelaufgabe: 'mc' }),
+        body: JSON.stringify({ fach, thema, fokus: fokus || undefined, schwierigkeit: schwierigkeit || 'leicht', einzelaufgabe: 'mc' }),
       })
       const data = await res.json()
       if (!res.ok || !data.frage) throw new Error(data.fehler || 'Neu-Generierung fehlgeschlagen.')
@@ -151,7 +141,7 @@ export default function VorschauEditor({ ergebnis, fach, thema, onGespeichert })
           'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
-        body: JSON.stringify({ fach, thema, einzelaufgabe: 'lt' }),
+        body: JSON.stringify({ fach, thema, fokus: fokus || undefined, schwierigkeit: schwierigkeit || 'leicht', einzelaufgabe: 'lt' }),
       })
       const data = await res.json()
       if (!res.ok || !data.lueckentext) throw new Error(data.fehler || 'Neu-Generierung fehlgeschlagen.')

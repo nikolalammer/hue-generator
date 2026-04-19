@@ -11,10 +11,13 @@ const FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generier
 export default function App() {
   const [fach, setFach] = useState('Deutsch')
   const [thema, setThema] = useState('')
+  const [fokus, setFokus] = useState('')
   // Aufgabentyp: mc | lueckentext | gemischt
   const [aufgabentyp, setAufgabentyp] = useState('mc')
   // Umfang: kurz (~3 Aufgaben) | mittel (~5) | lang (~8)
   const [umfang, setUmfang] = useState('mittel')
+  // Schwierigkeit: leicht | mittel | schwer
+  const [schwierigkeit, setSchwierigkeit] = useState('leicht')
   // ergebnis enthält { id, text, fragen, lueckentexte } – id ist die UUID der gespeicherten HÜ
   const [ergebnis, setErgebnis] = useState(null)
   // istGespeichert: true sobald die Lehrperson die Vorschau gespeichert hat
@@ -39,7 +42,7 @@ export default function App() {
           'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
-        body: JSON.stringify({ fach, thema, aufgabentyp, umfang }),
+        body: JSON.stringify({ fach, thema, fokus: fokus.trim() || undefined, aufgabentyp, umfang, schwierigkeit }),
       })
 
       const data = await res.json()
@@ -128,6 +131,16 @@ export default function App() {
         </div>
 
         <div className="formfeld">
+          <label htmlFor="fokus">Worauf soll besonders eingegangen werden? <span className="formfeld-optional">(optional)</span></label>
+          <AutoGrowTextarea
+            id="fokus"
+            placeholder="z.B. nur unregelmäßige Verben, keine Trennbaren Verben, Fokus auf Beistrichsetzung bei Aufzählungen"
+            value={fokus}
+            onChange={(e) => setFokus(e.target.value)}
+          />
+        </div>
+
+        <div className="formfeld">
           <label htmlFor="aufgabentyp">Aufgabentyp</label>
           <select
             id="aufgabentyp"
@@ -150,6 +163,19 @@ export default function App() {
             <option value="kurz">Kurz (ca. 5 Min)</option>
             <option value="mittel">Mittel (ca. 10 Min)</option>
             <option value="lang">Lang (ca. 15 Min)</option>
+          </select>
+        </div>
+
+        <div className="formfeld">
+          <label htmlFor="schwierigkeit">Schwierigkeit</label>
+          <select
+            id="schwierigkeit"
+            value={schwierigkeit}
+            onChange={(e) => setSchwierigkeit(e.target.value)}
+          >
+            <option value="leicht">Leicht</option>
+            <option value="mittel">Mittel</option>
+            <option value="schwer">Schwer</option>
           </select>
         </div>
 
@@ -182,6 +208,8 @@ export default function App() {
             ergebnis={ergebnis}
             fach={fach}
             thema={thema}
+            fokus={fokus}
+            schwierigkeit={schwierigkeit}
             onGespeichert={(bearbeiteteDaten) => {
               // Ergebnis mit den bearbeiteten Daten aktualisieren, dann Link anzeigen
               setErgebnis((prev) => ({ ...prev, ...bearbeiteteDaten }))

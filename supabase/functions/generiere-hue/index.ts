@@ -4,25 +4,55 @@
 
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 
-// CORS-Header für den Frontend-Zugriff
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Tool-Schema wird dynamisch im Handler aufgebaut (mit exakten minItems/maxItems je Umfang/Typ)
+// Österreichische Fachbegriffe + Qualitätskriterien als System-Prompt
+const SYSTEM_PROMPT = `Du bist ein erfahrener österreichischer Mittelschullehrer der Hausübungen erstellt.
+
+REGELN FÜR FACHBEGRIFFE (ÖSTERREICHISCHES SCHULSYSTEM):
+- Verwende durchgehend österreichische Schulterminologie.
+- Deutsche Grammatik-Begriffe die verwendet werden MÜSSEN:
+  • "1. Stammform" (statt Infinitiv)
+  • "2. Stammform" (statt Partizip II / Partizip Perfekt)
+  • "3. Stammform" (statt Präteritum / Imperfekt)
+  • "Grundstufe / Höherstufe / Höchststufe" für Steigerungsformen (NIEMALS Positiv / Komparativ / Superlativ)
+  • "Beistrich" statt "Komma" in allen Grammatik-Kontexten
+  • "Selbstlaut / Mitlaut / Zwielaut" statt "Vokal / Konsonant / Diphthong" wo passend
+  • "Nomen" statt "Substantiv"
+  • "Schularbeit" statt "Klassenarbeit"
+- NIEMALS verwenden: "Partizip", "Präteritum", "Imperfekt", "Komparativ", "Superlativ", "Komma" (im Grammatik-Kontext), "Infinitiv" (wenn 1. Stammform passt)
+- Mathematik: dezimale Schreibweise mit Komma (3,14), Grundrechnungsarten, Ergebnis statt Resultat
+- Englisch: britisches Englisch nach österreichischem Lehrplan
+- Rechtschreibung: Österreichisches Wörterbuch (ÖWB)
+
+QUALITÄTSKRITERIEN FÜR AUFGABEN:
+- Jede Aufgabe MUSS eindeutig eine richtige Lösung haben. Keine Aufgaben wo "eigentlich beides geht".
+- Aufgaben dürfen sich INHALTLICH nicht wiederholen. Wenn schon eine Aufgabe zu einem Verb oder Begriff gestellt wurde, nicht noch eine zum gleichen.
+- Bei Multiple Choice: Distraktoren (falsche Antworten) müssen plausibel sein, aber eindeutig falsch. KEINE offensichtlich absurden Optionen.
+- Bei Lückentext: Die Lücke muss aus dem Satzkontext eindeutig lösbar sein. Keine Lücken wo mehrere Wörter passen würden.
+- Schwierigkeit altersgerecht für 10–14-Jährige (Mittelschule, 5.–8. Schulstufe).
+- Sprache: einfach, kurze Sätze, keine Fachsprache außer wenn sie gelehrt werden soll.`;
 
 Deno.serve(async (req: Request) => {
-  // OPTIONS-Preflight-Request direkt beantworten
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    // aufgabentyp: "mc" | "lueckentext" | "gemischt", default "mc"
-    // umfang: "kurz" (3 Aufgaben) | "mittel" (5 Aufgaben, default) | "lang" (8 Aufgaben)
-    // einzelaufgabe: "mc" | "lt" – eine einzelne Aufgabe neu generieren (kein DB-Speichern)
-    const { fach, thema, aufgabentyp = 'mc', umfang = 'mittel', einzelaufgabe } = await req.json();
+    // fokus: optionaler Lehrer-Hinweis der als harte Vorgabe in den Prompt einfließt
+    // schwierigkeit: "leicht" | "mittel" | "schwer" (default: "leicht")
+    const {
+      fach,
+      thema,
+      fokus,
+      aufgabentyp = 'mc',
+      umfang = 'mittel',
+      schwierigkeit = 'leicht',
+      einzelaufgabe,
+    } = await req.json();
 
     if (!fach || !thema) {
       return new Response(
@@ -38,6 +68,18 @@ Deno.serve(async (req: Request) => {
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Schwierigkeitsgrad-Text für den Prompt
+    const schwierigkeitText = schwierigkeit === 'schwer'
+      ? 'SCHWER: Herausfordernde Begriffe, auch Stolperfallen und typische Fehlerquellen einbauen, Transferleistung erforderlich. Level: 8. Klasse / Vorbereitung weiterführende Schule. Bei MC: Distraktoren sehr nah an der richtigen Lösung. Bei Lückentext: auch ähnliche Wörter unterscheiden (z.B. das/dass, wieder/wider, seit/seid).'
+      : schwierigkeit === 'mittel'
+        ? 'MITTEL: Erweiterter Wortschatz, zusammengesetzte Sätze, leichte Transferleistung nötig. Level: 6.–7. Klasse.'
+        : 'LEICHT: Grundwortschatz, einfache Satzstrukturen, direkt aus dem Thema erschließbar. Level: Beginn 5. Klasse.';
+
+    // Fokus-Vorgabe falls gesetzt
+    const fokusAbschnitt = fokus && fokus.trim()
+      ? `\nZWINGENDE INHALTLICHE VORGABE VOM LEHRER: ${fokus.trim()}. Diese Vorgabe MUSS in jeder einzelnen Aufgabe berücksichtigt werden. Wenn die Vorgabe widerspricht was sonst im Thema steht, hat die Vorgabe Vorrang.\n`
+      : '';
 
     // Einzelaufgabe-Modus: genau 1 Frage neu generieren, ohne in DB zu speichern
     if (einzelaufgabe === 'mc' || einzelaufgabe === 'lt') {
@@ -67,8 +109,8 @@ Deno.serve(async (req: Request) => {
       };
 
       const einzelPrompt = einzelaufgabe === 'mc'
-        ? `Erstelle eine neue Multiple-Choice-Frage für österreichische Mittelschüler (AHS/NMS) im Fach "${fach}" zum Thema "${thema}". Genau 4 Antwortmöglichkeiten, "korrekt" ist der Index 0-3 der richtigen Antwort. Österreichische Fachbegriffe verwenden.`
-        : `Erstelle eine neue Lückentext-Aufgabe für österreichische Mittelschüler (AHS/NMS) im Fach "${fach}" zum Thema "${thema}". Satz mit genau einer Lücke als ___, "antwort" ist das erwartete Wort. Österreichische Fachbegriffe verwenden.`;
+        ? `Erstelle eine neue Multiple-Choice-Frage für österreichische Mittelschüler im Fach "${fach}" zum Thema "${thema}".${fokusAbschnitt}Genau 4 Antwortmöglichkeiten, "korrekt" ist der Index 0-3 der richtigen Antwort. Schwierigkeit: ${schwierigkeitText}`
+        : `Erstelle eine neue Lückentext-Aufgabe für österreichische Mittelschüler im Fach "${fach}" zum Thema "${thema}".${fokusAbschnitt}Satz mit genau einer Lücke als ___, "antwort" ist das erwartete Wort. Schwierigkeit: ${schwierigkeitText}`;
 
       const einzelResponse = await fetch(ANTHROPIC_API_URL, {
         method: 'POST',
@@ -80,6 +122,7 @@ Deno.serve(async (req: Request) => {
         body: JSON.stringify({
           model: 'claude-haiku-4-5-20251001',
           max_tokens: 512,
+          system: SYSTEM_PROMPT,
           tools: [einzelTool],
           tool_choice: { type: 'tool', name: einzelTool.name },
           messages: [{ role: 'user', content: einzelPrompt }],
@@ -104,13 +147,12 @@ Deno.serve(async (req: Request) => {
 
     // Aufgabenanzahl je nach Umfang
     const anzahlMap: Record<string, { mc: number; lt: number }> = {
-      kurz:   { mc: 2, lt: 1 },  // ~3 Aufgaben gesamt
-      mittel: { mc: 3, lt: 2 },  // ~5 Aufgaben gesamt
-      lang:   { mc: 5, lt: 3 },  // ~8 Aufgaben gesamt
+      kurz:   { mc: 2, lt: 1 },
+      mittel: { mc: 3, lt: 2 },
+      lang:   { mc: 5, lt: 3 },
     };
     const anzahl = anzahlMap[umfang] ?? anzahlMap['mittel'];
 
-    // Exakte Anzahl je Typ berechnen – MC und LT getrennt
     const mcAnzahl = aufgabentyp === 'mc' ? anzahl.mc + anzahl.lt
       : aufgabentyp === 'lueckentext' ? 0
       : anzahl.mc;
@@ -118,7 +160,6 @@ Deno.serve(async (req: Request) => {
       : aufgabentyp === 'mc' ? 0
       : anzahl.lt;
 
-    // Dynamisches Tool-Schema mit minItems/maxItems erzwingt exakte Aufgabenanzahl
     const hausübungTool = {
       name: 'hausaufgabe_erstellen',
       description: 'Erstellt eine Hausübung für österreichische Mittelschüler.',
@@ -174,37 +215,28 @@ Deno.serve(async (req: Request) => {
       },
     };
 
-    // Umfang-Kontext für den Prompt
-    const umfangHinweis = umfang === 'kurz' ? 'kurze Hausübung (ca. 5 Minuten, einfachere Aufgaben)'
-      : umfang === 'lang' ? 'lange Hausübung (ca. 15 Minuten, anspruchsvollere und vielfältigere Aufgaben)'
+    const umfangHinweis = umfang === 'kurz' ? 'kurze Hausübung (ca. 5 Minuten)'
+      : umfang === 'lang' ? 'lange Hausübung (ca. 15 Minuten)'
       : 'mittellange Hausübung (ca. 10 Minuten)';
 
-    // Explizite Anzahl-Anweisung – Modell MUSS exakt diese Anzahl liefern
     const typAnweisung = aufgabentyp === 'mc'
-      ? `Erstelle EXAKT ${mcAnzahl} Multiple-Choice-Fragen (fragen) und 0 Lückentexte (lueckentexte als leeres Array []). Nicht mehr, nicht weniger als ${mcAnzahl} MC-Fragen. Jede Frage hat genau 4 Antwortmöglichkeiten.`
+      ? `Erstelle EXAKT ${mcAnzahl} Multiple-Choice-Fragen (fragen) und 0 Lückentexte (lueckentexte als leeres Array []). Jede Frage hat genau 4 Antwortmöglichkeiten.`
       : aufgabentyp === 'lueckentext'
-        ? `Erstelle 0 Multiple-Choice-Fragen (fragen als leeres Array []) und EXAKT ${ltAnzahl} Lückentext-Aufgaben (lueckentexte). Nicht mehr, nicht weniger als ${ltAnzahl} Lückentexte. Jeder Satz enthält genau eine Lücke als ___.`
-        : `Erstelle EXAKT ${mcAnzahl} Multiple-Choice-Fragen (fragen) und EXAKT ${ltAnzahl} Lückentext-Aufgaben (lueckentexte). Genau diese Anzahl, nicht mehr, nicht weniger. Jeder Lückentext-Satz enthält genau eine Lücke als ___.`;
+        ? `Erstelle 0 Multiple-Choice-Fragen (fragen als leeres Array []) und EXAKT ${ltAnzahl} Lückentext-Aufgaben (lueckentexte). Jeder Satz enthält genau eine Lücke als ___.`
+        : `Erstelle EXAKT ${mcAnzahl} Multiple-Choice-Fragen (fragen) und EXAKT ${ltAnzahl} Lückentext-Aufgaben (lueckentexte). Jeder Lückentext-Satz enthält genau eine Lücke als ___.`;
 
-    // Prompt – österreichischer Lehrplan, Fachbegriffe explizit vorgegeben
-    const prompt = `Erstelle eine ${umfangHinweis} für österreichische Mittelschüler (AHS/NMS) im Fach "${fach}" zum Thema "${thema}".
-
-Österreichische Fachbegriffe verwenden:
-- Deutsch: Nomen (nicht Substantiv), Beistrich (nicht Komma), Schularbeit (nicht Klassenarbeit)
-- Mathematik: dezimale Schreibweise mit Komma (3,14), Grundrechnungsarten
-- Englisch: britisches Englisch nach österreichischem Lehrplan
-- Rechtschreibung: Österreichisches Wörterbuch (ÖWB)
+    const prompt = `Erstelle eine ${umfangHinweis} für österreichische Mittelschüler im Fach "${fach}" zum Thema "${thema}".
+${fokusAbschnitt}
+SCHWIERIGKEITSGRAD: ${schwierigkeitText}
 
 ${typAnweisung}
 
-Lesetext: 5-8 Sätze, altersgerecht (10-14 Jahre).
+Lesetext: 5-8 Sätze, altersgerecht (10–14 Jahre).
 MC-Fragen: je genau 4 Antwortmöglichkeiten, "korrekt" ist der Index (0-3) der richtigen Antwort.
 Lückentexte: Satz mit ___ als Lücke, "antwort" ist das erwartete Wort/die erwartete Phrase.
 
-WICHTIG: Das Tool-Schema erzwingt exakt ${mcAnzahl} MC-Fragen und ${ltAnzahl} Lückentexte.
-Rufe das Tool "hausaufgabe_erstellen" mit den Inhalten auf.`;
+Rufe das Tool "hausaufgabe_erstellen" auf.`;
 
-    // Anfrage an die Anthropic API mit tool_use
     const anthropicResponse = await fetch(ANTHROPIC_API_URL, {
       method: 'POST',
       headers: {
@@ -214,10 +246,9 @@ Rufe das Tool "hausaufgabe_erstellen" mit den Inhalten auf.`;
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        // 2048 Tokens reichen auch für lang (8 Aufgaben) sicher aus
         max_tokens: 2048,
+        system: SYSTEM_PROMPT,
         tools: [hausübungTool],
-        // tool_choice erzwingt dass das Modell genau dieses Tool aufruft
         tool_choice: { type: 'tool', name: 'hausaufgabe_erstellen' },
         messages: [{ role: 'user', content: prompt }],
       }),
@@ -234,18 +265,14 @@ Rufe das Tool "hausaufgabe_erstellen" mit den Inhalten auf.`;
 
     const anthropicDaten = await anthropicResponse.json();
 
-    // tool_use Block aus der Antwort extrahieren
     const toolResult = anthropicDaten.content.find((c: { type: string }) => c.type === 'tool_use');
     if (!toolResult) {
       console.error('Kein tool_use Block in Antwort:', JSON.stringify(anthropicDaten));
       throw new Error('Kein tool_use Block gefunden.');
     }
 
-    // toolResult.input ist bereits ein JS-Objekt – kein JSON.parse nötig
     const hausübung = toolResult.input;
 
-    // HÜ in Supabase speichern – SUPABASE_URL und SUPABASE_SERVICE_ROLE_KEY
-    // sind in Edge Functions automatisch verfügbar
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
@@ -272,7 +299,6 @@ Rufe das Tool "hausaufgabe_erstellen" mit den Inhalten auf.`;
 
     const [gespeichert] = await dbRes.json();
 
-    // ID + generierte Daten zurückgeben
     return new Response(JSON.stringify({ ...hausübung, id: gespeichert.id }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
