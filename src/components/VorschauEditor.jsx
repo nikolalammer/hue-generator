@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import supabase from '../lib/supabaseClient'
+import { edgeFunctionAufrufen } from '../lib/edgeFunction'
 import './VorschauEditor.css'
-
-// URL der Edge Function – wird auch für Einzelaufgaben-Regenerierung genutzt
-const FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generiere-hue`
 
 export default function VorschauEditor({ ergebnis, fach, thema, fokus, schwierigkeit, onGespeichert }) {
   // Tiefer Klon damit der lokale State unabhängig vom Parent-State ist
@@ -100,17 +98,11 @@ export default function VorschauEditor({ ergebnis, fach, thema, fokus, schwierig
     setNeuGenFehler((prev) => ({ ...prev, [key]: null }))
 
     try {
-      const res = await fetch(FUNCTION_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({ fach, thema, fokus: fokus || undefined, schwierigkeit: schwierigkeit || 'leicht', einzelaufgabe: 'mc' }),
-      })
-      const data = await res.json()
-      if (!res.ok || !data.frage) throw new Error(data.fehler || 'Neu-Generierung fehlgeschlagen.')
+      const data = await edgeFunctionAufrufen(
+        { fach, thema, fokus: fokus || undefined, schwierigkeit: schwierigkeit || 'leicht', einzelaufgabe: 'mc' },
+        'Neu-Generierung fehlgeschlagen.'
+      )
+      if (!data.frage) throw new Error('Neu-Generierung fehlgeschlagen.')
 
       setBearbeitet((prev) => ({
         ...prev,
@@ -134,17 +126,11 @@ export default function VorschauEditor({ ergebnis, fach, thema, fokus, schwierig
     setNeuGenFehler((prev) => ({ ...prev, [key]: null }))
 
     try {
-      const res = await fetch(FUNCTION_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({ fach, thema, fokus: fokus || undefined, schwierigkeit: schwierigkeit || 'leicht', einzelaufgabe: 'lt' }),
-      })
-      const data = await res.json()
-      if (!res.ok || !data.lueckentext) throw new Error(data.fehler || 'Neu-Generierung fehlgeschlagen.')
+      const data = await edgeFunctionAufrufen(
+        { fach, thema, fokus: fokus || undefined, schwierigkeit: schwierigkeit || 'leicht', einzelaufgabe: 'lt' },
+        'Neu-Generierung fehlgeschlagen.'
+      )
+      if (!data.lueckentext) throw new Error('Neu-Generierung fehlgeschlagen.')
 
       setBearbeitet((prev) => ({
         ...prev,

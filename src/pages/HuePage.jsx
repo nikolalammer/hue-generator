@@ -3,16 +3,8 @@
 // Laden und Auswerten laufen über die Edge Function (Modi "hole" und "auswerten").
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { edgeFunctionAufrufen } from '../lib/edgeFunction'
 import './HuePage.css'
-
-// URL der Edge Function – gleiche Function wie fürs Generieren
-const FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generiere-hue`
-
-const FUNCTION_HEADERS = {
-  'Content-Type': 'application/json',
-  'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-  'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-}
 
 export default function HuePage() {
   const { id } = useParams()
@@ -48,13 +40,7 @@ export default function HuePage() {
   useEffect(() => {
     async function laden() {
       try {
-        const res = await fetch(FUNCTION_URL, {
-          method: 'POST',
-          headers: FUNCTION_HEADERS,
-          body: JSON.stringify({ hole: id }),
-        })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.fehler || 'Diese Hausübung wurde nicht gefunden.')
+        const data = await edgeFunctionAufrufen({ hole: id }, 'Diese Hausübung wurde nicht gefunden.')
 
         setFach(data.fach || '')
         setThema(data.thema || '')
@@ -102,21 +88,15 @@ export default function HuePage() {
     setSpeichernFehler(null)
 
     try {
-      const res = await fetch(FUNCTION_URL, {
-        method: 'POST',
-        headers: FUNCTION_HEADERS,
-        body: JSON.stringify({
-          auswerten: {
-            hausuebung_id: id,
-            schueler_klasse: schuelerKlasse.trim().toLowerCase(),
-            schueler_nummer: parseInt(schuelerNummer, 10),
-            mcAntworten: ausgewaehlt,
-            ltAntworten: lueckenAntworten,
-          },
-        }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.fehler || 'Ergebnis konnte nicht gespeichert werden.')
+      const data = await edgeFunctionAufrufen({
+        auswerten: {
+          hausuebung_id: id,
+          schueler_klasse: schuelerKlasse.trim().toLowerCase(),
+          schueler_nummer: parseInt(schuelerNummer, 10),
+          mcAntworten: ausgewaehlt,
+          ltAntworten: lueckenAntworten,
+        },
+      }, 'Ergebnis konnte nicht gespeichert werden.')
 
       // Erst nach erfolgreichem Speichern anzeigen
       setAuswertung(data)
@@ -128,10 +108,10 @@ export default function HuePage() {
     }
   }
 
-  // Lückentext-Korrektheit nach der Auswertung (vorher unbekannt)
+  // Lückentext-Korrektheit kommt fertig bewertet vom Server (ltKorrekt-Array).
+  // Defensiv gegen Index-Verschiebung, falls die Lehrperson die HÜ zwischenzeitlich geändert hat.
   function lueckeKorrekt(i) {
-    if (!ausgewertet) return false
-    return lueckenAntworten[i].trim().toLowerCase() === auswertung.ltLoesungen[i].trim().toLowerCase()
+    return auswertung?.ltKorrekt?.[i] === true
   }
 
   // Ladezustand – Skeleton-Platzhalter
@@ -284,7 +264,7 @@ export default function HuePage() {
                     </span>
                     {ausgewertet && (
                       <span className={`luecken-korrektur ${lueckeKorrekt(i) ? 'korrekt' : 'falsch'}`}>
-                        {lueckeKorrekt(i) ? '✓' : `✗ Richtig: ${auswertung.ltLoesungen[i]}`}
+                        {lueckeKorrekt(i) ? '✓' : `✗ Richtig: ${auswertung.ltLoesungen?.[i] ?? '–'}`}
                       </span>
                     )}
                   </div>

@@ -3,10 +3,8 @@ import { Link } from 'react-router-dom'
 import { QRCodeCanvas } from 'qrcode.react'
 import AutoGrowTextarea from './components/AutoGrowTextarea'
 import VorschauEditor from './components/VorschauEditor'
+import { edgeFunctionAufrufen } from './lib/edgeFunction'
 import './App.css'
-
-// URL der Edge Function
-const FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generiere-hue`
 
 export default function App() {
   const [fach, setFach] = useState('Deutsch')
@@ -35,18 +33,10 @@ export default function App() {
     setKopiert(false)
 
     try {
-      const res = await fetch(FUNCTION_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({ fach, thema, fokus: fokus.trim() || undefined, aufgabentyp, umfang, schwierigkeit }),
-      })
-
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.fehler || 'Generierung fehlgeschlagen.')
+      const data = await edgeFunctionAufrufen(
+        { fach, thema, fokus: fokus.trim() || undefined, aufgabentyp, umfang, schwierigkeit },
+        'Generierung fehlgeschlagen.'
+      )
 
       // Prüfen ob die KI tatsächlich Aufgaben geliefert hat
       const hatFragen = Array.isArray(data.fragen) && data.fragen.length > 0
