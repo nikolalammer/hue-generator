@@ -20,6 +20,10 @@ export default function HuePage() {
   const [fragen, setFragen] = useState([])
   // Lückentext-Aufgaben (nur Sätze, keine Antworten)
   const [lueckentexte, setLueckentexte] = useState([])
+  // Wahr/Falsch-Aussagen (nur Aussagen, keine Wahrheitswerte)
+  const [wahrfalsch, setWahrfalsch] = useState([])
+  // Zuordnung: { begriffe: [...], partner: [gemischt] } oder null
+  const [zuordnung, setZuordnung] = useState(null)
 
   // Schüler-Flow
   const [schuelerNummer, setSchuelerNummer] = useState('')
@@ -29,6 +33,10 @@ export default function HuePage() {
   const [ausgewaehlt, setAusgewaehlt] = useState([])
   // Lückentext-Eingaben der Schüler (ein String pro Lückentext)
   const [lueckenAntworten, setLueckenAntworten] = useState([])
+  // Wahr/Falsch-Auswahl (true | false | null pro Aussage)
+  const [wfAntworten, setWfAntworten] = useState([])
+  // Zuordnungs-Auswahl (gewählter Partner-Text pro Begriff, '' = offen)
+  const [zuAntworten, setZuAntworten] = useState([])
   // auswertung: null bis zur Abgabe, danach { richtig, gesamt, prozent, mcLoesungen, ltLoesungen }
   const [auswertung, setAuswertung] = useState(null)
   const [sendet, setSendet] = useState(false)
@@ -51,6 +59,12 @@ export default function HuePage() {
         const lts = Array.isArray(data.lueckentexte) ? data.lueckentexte : []
         setLueckentexte(lts)
         setLueckenAntworten(new Array(lts.length).fill(''))
+        const wfs = Array.isArray(data.wahrfalsch) ? data.wahrfalsch : []
+        setWahrfalsch(wfs)
+        setWfAntworten(new Array(wfs.length).fill(null))
+        const zu = data.zuordnung && Array.isArray(data.zuordnung.begriffe) ? data.zuordnung : null
+        setZuordnung(zu)
+        setZuAntworten(new Array(zu ? zu.begriffe.length : 0).fill(''))
       } catch (err) {
         setFehler(err.message || 'Diese Hausübung wurde nicht gefunden.')
       } finally {
@@ -95,6 +109,8 @@ export default function HuePage() {
           schueler_nummer: parseInt(schuelerNummer, 10),
           mcAntworten: ausgewaehlt,
           ltAntworten: lueckenAntworten,
+          wfAntworten,
+          zuAntworten,
         },
       }, 'Ergebnis konnte nicht gespeichert werden.')
 
@@ -199,7 +215,7 @@ export default function HuePage() {
           </div>
 
           {/* Fragen (klickbar) */}
-          <p className="fragen-titel">Fragen</p>
+          {fragen.length > 0 && <p className="fragen-titel">Fragen</p>}
           {fragen.map((frage, i) => (
             <div key={i} className="frage">
               <p className="fragetext">{i + 1}. {frage.frage}</p>
@@ -273,19 +289,108 @@ export default function HuePage() {
             </>
           )}
 
-          {/* Auswerten-Button – auch Lückentexte müssen ausgefüllt sein */}
-          <button
-            type="button"
-            className="auswerten-btn"
-            onClick={auswerten}
-            disabled={ausgewertet || sendet || ausgewaehlt.some((a) => a === null) || lueckenAntworten.some((a) => a.trim() === '')}
-          >
-            {sendet
-              ? 'Wird ausgewertet...'
-              : (ausgewaehlt.some((a) => a === null) || lueckenAntworten.some((a) => a.trim() === ''))
-                ? `Noch ${ausgewaehlt.filter((a) => a === null).length + lueckenAntworten.filter((a) => a.trim() === '').length} Aufgabe(n) offen`
-                : 'Auswerten'}
-          </button>
+          {/* Wahr/Falsch-Aussagen */}
+          {wahrfalsch.length > 0 && (
+            <>
+              <p className="fragen-titel">Wahr oder falsch?</p>
+              {wahrfalsch.map((wf, i) => (
+                <div key={i} className="frage">
+                  <p className="fragetext">{i + 1}. {wf.aussage}</p>
+                  <ul className="antwortliste wf-antwortliste">
+                    {[true, false].map((wert) => {
+                      const gewaehlt = wfAntworten[i] === wert
+                      const korrekt = ausgewertet && auswertung.wfLoesungen?.[i] === wert
+                      const falsch = ausgewertet && gewaehlt && auswertung.wfLoesungen?.[i] !== wert
+                      return (
+                        <li
+                          key={String(wert)}
+                          className={[
+                            'antwort-option',
+                            gewaehlt && !ausgewertet ? 'gewaehlt' : '',
+                            korrekt ? 'korrekt' : '',
+                            falsch ? 'falsch' : '',
+                          ].filter(Boolean).join(' ')}
+                          onClick={() => {
+                            if (ausgewertet) return
+                            const neu = [...wfAntworten]
+                            neu[i] = wert
+                            setWfAntworten(neu)
+                          }}
+                        >
+                          <span className="buchstabe">{wert ? 'W' : 'F'}</span>
+                          {wert ? 'Wahr' : 'Falsch'}
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </div>
+              ))}
+            </>
+          )}
+
+          {/* Zuordnung: jedem Begriff den passenden Partner zuweisen */}
+          {zuordnung && zuordnung.begriffe.length > 0 && (
+            <>
+              <p className="fragen-titel">Zuordnung – was passt zusammen?</p>
+              <div className="frage zuordnung-block">
+                {zuordnung.begriffe.map((begriff, i) => {
+                  const korrekt = ausgewertet && auswertung.zuKorrekt?.[i] === true
+                  return (
+                    <div key={i} className="zuordnung-zeile">
+                      <span className="zuordnung-begriff">{begriff}</span>
+                      <select
+                        className={[
+                          'zuordnung-select',
+                          ausgewertet ? (korrekt ? 'korrekt' : 'falsch') : '',
+                        ].filter(Boolean).join(' ')}
+                        value={zuAntworten[i]}
+                        disabled={ausgewertet}
+                        onChange={(e) => {
+                          const neu = [...zuAntworten]
+                          neu[i] = e.target.value
+                          setZuAntworten(neu)
+                        }}
+                        aria-label={`Partner für ${begriff} wählen`}
+                      >
+                        <option value="">– bitte wählen –</option>
+                        {zuordnung.partner.map((p, j) => (
+                          <option key={j} value={p}>{p}</option>
+                        ))}
+                      </select>
+                      {ausgewertet && (
+                        <span className={`luecken-korrektur ${korrekt ? 'korrekt' : 'falsch'}`}>
+                          {korrekt ? '✓' : `✗ Richtig: ${auswertung.zuLoesungen?.[i] ?? '–'}`}
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </>
+          )}
+
+          {/* Auswerten-Button – alle Aufgabentypen müssen beantwortet sein */}
+          {(() => {
+            const offen =
+              ausgewaehlt.filter((a) => a === null).length +
+              lueckenAntworten.filter((a) => a.trim() === '').length +
+              wfAntworten.filter((a) => a === null).length +
+              zuAntworten.filter((a) => a === '').length
+            return (
+              <button
+                type="button"
+                className="auswerten-btn"
+                onClick={auswerten}
+                disabled={ausgewertet || sendet || offen > 0}
+              >
+                {sendet
+                  ? 'Wird ausgewertet...'
+                  : offen > 0
+                    ? `Noch ${offen} Aufgabe(n) offen`
+                    : 'Auswerten'}
+              </button>
+            )
+          })()}
 
           {/* Ergebnis-Zusammenfassung – Prozent-Badge + Originaltext */}
           {ausgewertet && (() => {

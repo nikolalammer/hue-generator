@@ -52,12 +52,28 @@ function jsonAntwort(daten: unknown, status = 200): Response {
   });
 }
 
+// Fisher-Yates-Mischen (Math.random via sort wäre verzerrt)
+function mischen<T>(arr: T[]): T[] {
+  const kopie = [...arr];
+  for (let i = kopie.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [kopie[i], kopie[j]] = [kopie[j], kopie[i]];
+  }
+  return kopie;
+}
+
 // Hausübung per ID mit Service-Role aus der DB laden (null wenn nicht gefunden)
 async function hausuebungLaden(id: string): Promise<{
   id: string;
   fach: string;
   thema: string;
-  aufgaben_json: { text?: string; fragen?: unknown[]; lueckentexte?: unknown[] };
+  aufgaben_json: {
+    text?: string;
+    fragen?: unknown[];
+    lueckentexte?: unknown[];
+    wahrfalsch?: unknown[];
+    zuordnung?: unknown[];
+  };
 } | null> {
   // UUID-Format prüfen bevor die ID in die REST-URL eingebaut wird
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
@@ -103,6 +119,7 @@ Deno.serve(async (req: Request) => {
         return jsonAntwort({ fehler: 'Diese Hausübung wurde nicht gefunden.' }, 404);
       }
       const aufgaben = hue.aufgaben_json ?? {};
+      const zuordnung = Array.isArray(aufgaben.zuordnung) ? aufgaben.zuordnung : [];
       return jsonAntwort({
         fach: hue.fach ?? '',
         thema: hue.thema ?? '',
@@ -113,6 +130,18 @@ Deno.serve(async (req: Request) => {
         lueckentexte: (Array.isArray(aufgaben.lueckentexte) ? aufgaben.lueckentexte : []).map(
           (lt: { satz: string }) => ({ satz: lt.satz })
         ),
+        // Wahr/Falsch: nur die Aussagen, nicht die Wahrheitswerte
+        wahrfalsch: (Array.isArray(aufgaben.wahrfalsch) ? aufgaben.wahrfalsch : []).map(
+          (wf: { aussage: string }) => ({ aussage: wf.aussage })
+        ),
+        // Zuordnung: Begriffe in Originalreihenfolge, Partner GEMISCHT –
+        // die Reihenfolge darf die richtige Paarung nicht verraten
+        zuordnung: zuordnung.length > 0
+          ? {
+              begriffe: zuordnung.map((p: { begriff?: string }) => String(p?.begriff ?? '')),
+              partner: mischen(zuordnung.map((p: { partner?: string }) => String(p?.partner ?? ''))),
+            }
+          : null,
       });
     }
 
@@ -124,6 +153,8 @@ Deno.serve(async (req: Request) => {
         schueler_nummer,
         mcAntworten = [],
         ltAntworten = [],
+        wfAntworten = [],
+        zuAntworten = [],
       } = body.auswerten;
 
       const nummer = parseInt(schueler_nummer, 10);
@@ -139,8 +170,11 @@ Deno.serve(async (req: Request) => {
 
       const fragen = Array.isArray(hue.aufgaben_json?.fragen) ? hue.aufgaben_json.fragen : [];
       const lueckentexte = Array.isArray(hue.aufgaben_json?.lueckentexte) ? hue.aufgaben_json.lueckentexte : [];
+      const wahrfalsch = Array.isArray(hue.aufgaben_json?.wahrfalsch) ? hue.aufgaben_json.wahrfalsch : [];
+      const zuordnung = Array.isArray(hue.aufgaben_json?.zuordnung) ? hue.aufgaben_json.zuordnung : [];
 
-      // MC: Index-Vergleich | Lückentext: case-insensitiv, Whitespace-trim, Umlaute strikt.
+      // MC: Index-Vergleich | Lückentext: case-insensitiv, Whitespace-trim, Umlaute strikt
+      // Wahr/Falsch: Boolean-Vergleich | Zuordnung: exakter Partner-Text (kommt aus unseren Optionen).
       // Defensiv gegen unvollständige aufgaben_json (Lehrer kann sie frei editieren).
       const mcLoesungen = fragen.map((f: { korrekt?: number }) => f?.korrekt ?? -1);
       const ltLoesungen = lueckentexte.map((lt: { antwort?: string }) => String(lt?.antwort ?? ''));
@@ -148,12 +182,21 @@ Deno.serve(async (req: Request) => {
         (antwort: string, i: number) =>
           String(ltAntworten[i] ?? '').trim().toLowerCase() === antwort.trim().toLowerCase()
       );
+      const wfLoesungen = wahrfalsch.map((wf: { wahr?: boolean }) => wf?.wahr === true);
+      const zuLoesungen = zuordnung.map((p: { partner?: string }) => String(p?.partner ?? ''));
+      const zuKorrekt = zuLoesungen.map(
+        (partner: string, i: number) => String(zuAntworten[i] ?? '') === partner
+      );
       const richtigMC = mcLoesungen.filter(
         (korrekt: number, i: number) => mcAntworten[i] === korrekt
       ).length;
       const richtigLT = ltKorrekt.filter(Boolean).length;
-      const richtig = richtigMC + richtigLT;
-      const gesamt = fragen.length + lueckentexte.length;
+      const richtigWF = wfLoesungen.filter(
+        (wahr: boolean, i: number) => wfAntworten[i] === wahr
+      ).length;
+      const richtigZU = zuKorrekt.filter(Boolean).length;
+      const richtig = richtigMC + richtigLT + richtigWF + richtigZU;
+      const gesamt = fragen.length + lueckentexte.length + wahrfalsch.length + zuordnung.length;
       const prozent = gesamt > 0 ? Math.round((richtig / gesamt) * 100) : 0;
 
       // Ergebnis mit Service-Role speichern (Schüler brauchen kein Insert-Recht mehr)
@@ -181,8 +224,12 @@ Deno.serve(async (req: Request) => {
       await insertRes.body?.cancel();
 
       // Erst NACH erfolgreichem Speichern die Lösungen fürs Feedback zurückgeben.
-      // ltKorrekt kommt mit, damit der Client die Bewertung nicht nachrechnen muss.
-      return jsonAntwort({ richtig, gesamt, prozent, mcLoesungen, ltLoesungen, ltKorrekt });
+      // Die Korrekt-Arrays kommen mit, damit der Client die Bewertung nicht nachrechnet.
+      return jsonAntwort({
+        richtig, gesamt, prozent,
+        mcLoesungen, ltLoesungen, ltKorrekt,
+        wfLoesungen, zuLoesungen, zuKorrekt,
+      });
     }
 
     if (!fach || !thema) {
@@ -212,8 +259,8 @@ Deno.serve(async (req: Request) => {
       ? `\nZWINGENDE INHALTLICHE VORGABE VOM LEHRER: ${fokus.trim()}. Diese Vorgabe MUSS in jeder einzelnen Aufgabe berücksichtigt werden. Wenn die Vorgabe widerspricht was sonst im Thema steht, hat die Vorgabe Vorrang.\n`
       : '';
 
-    // Einzelaufgabe-Modus: genau 1 Frage neu generieren, ohne in DB zu speichern
-    if (einzelaufgabe === 'mc' || einzelaufgabe === 'lt') {
+    // Einzelaufgabe-Modus: genau 1 Aufgabe neu generieren, ohne in DB zu speichern
+    if (einzelaufgabe === 'mc' || einzelaufgabe === 'lt' || einzelaufgabe === 'wf') {
       const einzelTool = einzelaufgabe === 'mc' ? {
         name: 'frage_erstellen',
         description: 'Erstellt eine einzelne Multiple-Choice-Frage.',
@@ -226,7 +273,7 @@ Deno.serve(async (req: Request) => {
           },
           required: ['frage', 'antworten', 'korrekt'],
         },
-      } : {
+      } : einzelaufgabe === 'lt' ? {
         name: 'lueckentext_erstellen',
         description: 'Erstellt eine einzelne Lückentext-Aufgabe.',
         input_schema: {
@@ -237,11 +284,24 @@ Deno.serve(async (req: Request) => {
           },
           required: ['satz', 'antwort'],
         },
+      } : {
+        name: 'wahrfalsch_erstellen',
+        description: 'Erstellt eine einzelne Wahr/Falsch-Aussage.',
+        input_schema: {
+          type: 'object',
+          properties: {
+            aussage: { type: 'string', description: 'Eine eindeutig wahre oder eindeutig falsche Aussage.' },
+            wahr: { type: 'boolean', description: 'true wenn die Aussage stimmt, false wenn nicht.' },
+          },
+          required: ['aussage', 'wahr'],
+        },
       };
 
       const einzelPrompt = einzelaufgabe === 'mc'
         ? `Erstelle eine neue Multiple-Choice-Frage für österreichische Mittelschüler im Fach "${fach}" zum Thema "${thema}".${fokusAbschnitt}Genau 4 Antwortmöglichkeiten, "korrekt" ist der Index 0-3 der richtigen Antwort. Schwierigkeit: ${schwierigkeitText}`
-        : `Erstelle eine neue Lückentext-Aufgabe für österreichische Mittelschüler im Fach "${fach}" zum Thema "${thema}".${fokusAbschnitt}Satz mit genau einer Lücke als ___, "antwort" ist das erwartete Wort. Schwierigkeit: ${schwierigkeitText}`;
+        : einzelaufgabe === 'lt'
+          ? `Erstelle eine neue Lückentext-Aufgabe für österreichische Mittelschüler im Fach "${fach}" zum Thema "${thema}".${fokusAbschnitt}Satz mit genau einer Lücke als ___, "antwort" ist das erwartete Wort. Schwierigkeit: ${schwierigkeitText}`
+          : `Erstelle eine neue Wahr/Falsch-Aussage für österreichische Mittelschüler im Fach "${fach}" zum Thema "${thema}".${fokusAbschnitt}Die Aussage muss eindeutig wahr ODER eindeutig falsch sein, entscheide zufällig welches von beiden. Schwierigkeit: ${schwierigkeitText}`;
 
       const einzelResponse = await fetch(ANTHROPIC_API_URL, {
         method: 'POST',
@@ -270,26 +330,29 @@ Deno.serve(async (req: Request) => {
       const einzelResult = einzelDaten.content.find((c: { type: string }) => c.type === 'tool_use');
       if (!einzelResult) throw new Error('Kein Ergebnis von der KI.');
 
-      const returnKey = einzelaufgabe === 'mc' ? 'frage' : 'lueckentext';
+      const returnKey = einzelaufgabe === 'mc' ? 'frage' : einzelaufgabe === 'lt' ? 'lueckentext' : 'wahrfalsch';
       return new Response(JSON.stringify({ [returnKey]: einzelResult.input }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     // Aufgabenanzahl je nach Umfang
-    const anzahlMap: Record<string, { mc: number; lt: number }> = {
-      kurz:   { mc: 2, lt: 1 },
-      mittel: { mc: 3, lt: 2 },
-      lang:   { mc: 5, lt: 3 },
+    const anzahlMap: Record<string, { mc: number; lt: number; zu: number }> = {
+      kurz:   { mc: 2, lt: 1, zu: 4 },
+      mittel: { mc: 3, lt: 2, zu: 6 },
+      lang:   { mc: 5, lt: 3, zu: 8 },
     };
     const anzahl = anzahlMap[umfang] ?? anzahlMap['mittel'];
+    const gesamtZahl = anzahl.mc + anzahl.lt;
 
-    const mcAnzahl = aufgabentyp === 'mc' ? anzahl.mc + anzahl.lt
-      : aufgabentyp === 'lueckentext' ? 0
-      : anzahl.mc;
-    const ltAnzahl = aufgabentyp === 'lueckentext' ? anzahl.mc + anzahl.lt
-      : aufgabentyp === 'mc' ? 0
-      : anzahl.lt;
+    // Verteilung je Aufgabentyp. "gemischt" bleibt bewusst MC + Lückentext
+    // (wie bisher) – Wahr/Falsch und Zuordnung sind eigenständige Typen.
+    let mcAnzahl = 0, ltAnzahl = 0, wfAnzahl = 0, zuAnzahl = 0;
+    if (aufgabentyp === 'mc') mcAnzahl = gesamtZahl;
+    else if (aufgabentyp === 'lueckentext') ltAnzahl = gesamtZahl;
+    else if (aufgabentyp === 'wahrfalsch') wfAnzahl = gesamtZahl;
+    else if (aufgabentyp === 'zuordnung') zuAnzahl = anzahl.zu;
+    else { mcAnzahl = anzahl.mc; ltAnzahl = anzahl.lt; }
 
     const hausübungTool = {
       name: 'hausaufgabe_erstellen',
@@ -341,8 +404,48 @@ Deno.serve(async (req: Request) => {
               required: ['satz', 'antwort'],
             },
           },
+          wahrfalsch: {
+            type: 'array',
+            description: `Wahr/Falsch-Aussagen – exakt ${wfAnzahl} Stück. Ungefähr die Hälfte wahr, die Hälfte falsch, in zufälliger Reihenfolge.`,
+            minItems: wfAnzahl,
+            maxItems: wfAnzahl,
+            items: {
+              type: 'object',
+              properties: {
+                aussage: {
+                  type: 'string',
+                  description: 'Eine eindeutig wahre oder eindeutig falsche Aussage.',
+                },
+                wahr: {
+                  type: 'boolean',
+                  description: 'true wenn die Aussage stimmt, false wenn nicht.',
+                },
+              },
+              required: ['aussage', 'wahr'],
+            },
+          },
+          zuordnung: {
+            type: 'array',
+            description: `Zuordnungspaare – exakt ${zuAnzahl} Stück. Jeder Begriff hat genau einen eindeutig passenden Partner; kein Partner darf zu mehreren Begriffen passen.`,
+            minItems: zuAnzahl,
+            maxItems: zuAnzahl,
+            items: {
+              type: 'object',
+              properties: {
+                begriff: {
+                  type: 'string',
+                  description: 'Begriff auf der linken Seite (z. B. Fachbegriff, Wort).',
+                },
+                partner: {
+                  type: 'string',
+                  description: 'Eindeutig passender Partner (z. B. Definition, Beispiel, Übersetzung).',
+                },
+              },
+              required: ['begriff', 'partner'],
+            },
+          },
         },
-        required: ['text', 'fragen', 'lueckentexte'],
+        required: ['text', 'fragen', 'lueckentexte', 'wahrfalsch', 'zuordnung'],
       },
     };
 
@@ -350,11 +453,9 @@ Deno.serve(async (req: Request) => {
       : umfang === 'lang' ? 'lange Hausübung (ca. 15 Minuten)'
       : 'mittellange Hausübung (ca. 10 Minuten)';
 
-    const typAnweisung = aufgabentyp === 'mc'
-      ? `Erstelle EXAKT ${mcAnzahl} Multiple-Choice-Fragen (fragen) und 0 Lückentexte (lueckentexte als leeres Array []). Jede Frage hat genau 4 Antwortmöglichkeiten.`
-      : aufgabentyp === 'lueckentext'
-        ? `Erstelle 0 Multiple-Choice-Fragen (fragen als leeres Array []) und EXAKT ${ltAnzahl} Lückentext-Aufgaben (lueckentexte). Jeder Satz enthält genau eine Lücke als ___.`
-        : `Erstelle EXAKT ${mcAnzahl} Multiple-Choice-Fragen (fragen) und EXAKT ${ltAnzahl} Lückentext-Aufgaben (lueckentexte). Jeder Lückentext-Satz enthält genau eine Lücke als ___.`;
+    // Anweisung nennt für JEDEN Array-Typ die exakte Anzahl (0 = leeres Array),
+    // damit das Modell keine ungewollten Aufgaben dazu erfindet
+    const typAnweisung = `Erstelle EXAKT: ${mcAnzahl} Multiple-Choice-Fragen (fragen), ${ltAnzahl} Lückentext-Aufgaben (lueckentexte), ${wfAnzahl} Wahr/Falsch-Aussagen (wahrfalsch) und ${zuAnzahl} Zuordnungspaare (zuordnung). Arrays mit Anzahl 0 als leeres Array [] zurückgeben.`;
 
     const prompt = `Erstelle eine ${umfangHinweis} für österreichische Mittelschüler im Fach "${fach}" zum Thema "${thema}".
 ${fokusAbschnitt}
@@ -365,6 +466,8 @@ ${typAnweisung}
 Lesetext: 5-8 Sätze, altersgerecht (10–14 Jahre).
 MC-Fragen: je genau 4 Antwortmöglichkeiten, "korrekt" ist der Index (0-3) der richtigen Antwort.
 Lückentexte: Satz mit ___ als Lücke, "antwort" ist das erwartete Wort/die erwartete Phrase.
+Wahr/Falsch: eindeutig entscheidbare Aussagen, ca. halb wahr / halb falsch, zufällig gereiht.
+Zuordnung: Begriff-Partner-Paare, jeder Partner passt nur zu genau einem Begriff.
 
 Rufe das Tool "hausaufgabe_erstellen" auf.`;
 

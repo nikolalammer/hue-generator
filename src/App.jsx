@@ -10,7 +10,7 @@ export default function App() {
   const [fach, setFach] = useState('Deutsch')
   const [thema, setThema] = useState('')
   const [fokus, setFokus] = useState('')
-  // Aufgabentyp: mc | lueckentext | gemischt
+  // Aufgabentyp: mc | lueckentext | wahrfalsch | zuordnung | gemischt
   const [aufgabentyp, setAufgabentyp] = useState('mc')
   // Umfang: kurz (~3 Aufgaben) | mittel (~5) | lang (~8)
   const [umfang, setUmfang] = useState('mittel')
@@ -39,9 +39,9 @@ export default function App() {
       )
 
       // Prüfen ob die KI tatsächlich Aufgaben geliefert hat
-      const hatFragen = Array.isArray(data.fragen) && data.fragen.length > 0
-      const hatLueckentexte = Array.isArray(data.lueckentexte) && data.lueckentexte.length > 0
-      if (!hatFragen && !hatLueckentexte) {
+      const hatAufgaben = ['fragen', 'lueckentexte', 'wahrfalsch', 'zuordnung']
+        .some((key) => Array.isArray(data[key]) && data[key].length > 0)
+      if (!hatAufgaben) {
         throw new Error('Die KI hat keine Aufgaben zurückgeliefert.')
       }
 
@@ -139,7 +139,9 @@ export default function App() {
           >
             <option value="mc">Multiple Choice</option>
             <option value="lueckentext">Lückentext</option>
-            <option value="gemischt">Gemischt</option>
+            <option value="wahrfalsch">Wahr/Falsch</option>
+            <option value="zuordnung">Zuordnung</option>
+            <option value="gemischt">Gemischt (MC + Lückentext)</option>
           </select>
         </div>
 
@@ -249,6 +251,30 @@ export default function App() {
               {ergebnis.lueckentexte.map((lt, i) => (
                 <div key={i} className="frage">
                   <p className="fragetext">{i + 1}. {lt.satz.replace('___', '______')}</p>
+                </div>
+              ))}
+            </>
+          )}
+
+          {/* Wahr/Falsch-Vorschau */}
+          {Array.isArray(ergebnis.wahrfalsch) && ergebnis.wahrfalsch.length > 0 && (
+            <>
+              <p className="fragen-titel">Wahr/Falsch (Vorschau)</p>
+              {ergebnis.wahrfalsch.map((wf, i) => (
+                <div key={i} className="frage">
+                  <p className="fragetext">{i + 1}. {wf.aussage}</p>
+                </div>
+              ))}
+            </>
+          )}
+
+          {/* Zuordnungs-Vorschau */}
+          {Array.isArray(ergebnis.zuordnung) && ergebnis.zuordnung.length > 0 && (
+            <>
+              <p className="fragen-titel">Zuordnung (Vorschau)</p>
+              {ergebnis.zuordnung.map((paar, i) => (
+                <div key={i} className="frage">
+                  <p className="fragetext">{paar.begriff} → {paar.partner}</p>
                 </div>
               ))}
             </>

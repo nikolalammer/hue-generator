@@ -459,6 +459,69 @@
 .luecken-korrektur.falsch  { color: var(--hot); }
 
 /* ============================================================
+   Zuordnung – Begriff links, Partner-Auswahl rechts
+   ============================================================ */
+.zuordnung-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.zuordnung-zeile {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.zuordnung-begriff {
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: var(--ink);
+  min-width: 40%;
+}
+
+.zuordnung-select {
+  flex: 1;
+  min-width: 160px;
+  padding: 8px 10px;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  background: var(--paper);
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.zuordnung-select:focus {
+  outline: none;
+  border-color: var(--hot);
+}
+
+.zuordnung-select.korrekt {
+  border-color: var(--erfolg);
+  color: var(--erfolg);
+}
+
+.zuordnung-select.falsch {
+  border-color: var(--hot);
+  color: var(--hot);
+}
+
+.zuordnung-select:disabled {
+  opacity: 0.8;
+  cursor: default;
+}
+
+/* Auf schmalen Screens Begriff über der Auswahl */
+@media (max-width: 480px) {
+  .zuordnung-begriff {
+    min-width: 100%;
+  }
+}
+
+/* ============================================================
    Auswerten-Button – groß, einladend, Schüler-freundlich
    ============================================================ */
 .auswerten-btn {
