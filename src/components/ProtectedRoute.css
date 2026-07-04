@@ -16,7 +16,7 @@
   display: inline-block;
   width: 18px;
   height: 18px;
-  border: 2px solid rgba(30, 58, 138, 0.15);
+  border: 2px solid rgba(43, 33, 24, 0.15);
   border-top-color: var(--ink);
   border-radius: 50%;
   animation: drehen 0.7s linear infinite;

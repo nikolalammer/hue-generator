@@ -11,8 +11,8 @@
   gap: var(--space-3);
   padding: var(--space-4) var(--space-5);
   background: rgba(253, 224, 71, 0.18);
-  border: 2px solid var(--ink);
-  border-left: 5px solid var(--hot);
+  border: 1.5px solid rgba(43, 33, 24, 0.12);
+  border-left: 3px solid var(--butter);
   margin-bottom: var(--space-6);
 }
 
@@ -43,7 +43,7 @@
   font-size: var(--text-sm);
   font-family: var(--font-body);
   color: var(--ink);
-  border: 2.5px solid var(--ink);
+  border: 1.5px solid rgba(43, 33, 24, 0.12);
   background: var(--paper);
   outline: none;
   resize: vertical;
@@ -55,7 +55,8 @@
 }
 
 .editor-textarea:focus {
-  box-shadow: 4px 4px 0 var(--hot);
+  border-color: var(--terracotta);
+  box-shadow: 0 0 0 3px rgba(210, 105, 30, 0.15);
 }
 
 /* Editierbares Input-Feld */
@@ -65,7 +66,7 @@
   font-size: var(--text-sm);
   font-family: var(--font-body);
   color: var(--ink);
-  border: 2.5px solid var(--ink);
+  border: 1.5px solid rgba(43, 33, 24, 0.12);
   background: var(--paper);
   outline: none;
   box-sizing: border-box;
@@ -74,14 +75,15 @@
 }
 
 .editor-input:focus {
-  box-shadow: 4px 4px 0 var(--hot);
+  border-color: var(--terracotta);
+  box-shadow: 0 0 0 3px rgba(210, 105, 30, 0.15);
 }
 
 /* Lesetext-Block */
 .editor-lesetext-block {
   background: var(--paper);
-  border: 2.5px solid var(--ink);
-  box-shadow: 3px 3px 0 var(--hot);
+  border: 1.5px solid rgba(43, 33, 24, 0.12);
+  box-shadow: var(--shadow-card);
   padding: var(--space-4) var(--space-5);
   margin-bottom: var(--space-6);
 }
@@ -89,8 +91,8 @@
 /* Frageblock */
 .editor-frageblock {
   background: var(--paper);
-  border: 2.5px solid var(--ink);
-  box-shadow: 3px 3px 0 var(--hot);
+  border: 1.5px solid rgba(43, 33, 24, 0.12);
+  box-shadow: var(--shadow-card);
   padding: var(--space-6);
   display: flex;
   flex-direction: column;
@@ -161,8 +163,8 @@
 /* Lückentext-Block */
 .editor-lueckentext-block {
   background: var(--paper);
-  border: 2.5px solid var(--ink);
-  box-shadow: 3px 3px 0 var(--hot);
+  border: 1.5px solid rgba(43, 33, 24, 0.12);
+  box-shadow: var(--shadow-card);
   padding: var(--space-6);
   display: flex;
   flex-direction: column;
@@ -192,16 +194,16 @@
   font-weight: 700;
   color: var(--ink);
   background: var(--paper);
-  border: 2px solid var(--ink);
+  border: 1.5px solid rgba(43, 33, 24, 0.12);
   cursor: pointer;
-  box-shadow: 2px 2px 0 var(--hot);
+  box-shadow: var(--shadow-card);
   transition: transform 60ms ease-out, box-shadow 60ms ease-out;
   white-space: nowrap;
   letter-spacing: 0.01em;
 }
 
 .editor-neu-btn:hover:not(:disabled) {
-  background: rgba(30, 58, 138, 0.05);
+  background: rgba(43, 33, 24, 0.05);
 }
 
 .editor-neu-btn:active:not(:disabled) {
@@ -219,7 +221,7 @@
 .editor-neu-fehler {
   padding: 6px 10px;
   background: var(--fehler-hell);
-  border: 2px solid var(--hot);
+  border: 1.5px solid var(--fehler-border);
   color: var(--hot);
   font-family: var(--font-body);
   font-size: var(--text-xs);
@@ -236,16 +238,16 @@
   font-weight: 800;
   background: var(--ink);
   color: var(--paper);
-  border: 2.5px solid var(--ink);
+  border: 1.5px solid rgba(43, 33, 24, 0.12);
   cursor: pointer;
-  box-shadow: 4px 4px 0 var(--hot);
+  box-shadow: var(--shadow-card);
   transition: transform 60ms ease-out, box-shadow 60ms ease-out;
   margin-top: var(--space-4);
   letter-spacing: 0.01em;
 }
 
 .editor-speichern-btn:hover:not(:disabled) {
-  background: #152a6e;
+  background: var(--terracotta);
 }
 
 .editor-speichern-btn:active:not(:disabled) {
@@ -264,8 +266,8 @@
   margin-top: var(--space-3);
   padding: 10px 14px;
   background: var(--fehler-hell);
-  border: 2.5px solid var(--hot);
-  box-shadow: 2px 2px 0 var(--ink);
+  border: 1.5px solid var(--fehler-border);
+  box-shadow: var(--shadow-card);
   color: var(--hot);
   font-family: var(--font-body);
   font-size: var(--text-sm);
@@ -278,7 +280,7 @@
   padding: 10px 14px;
   background: var(--erfolg-hell);
   border: 2.5px solid var(--erfolg);
-  box-shadow: 2px 2px 0 var(--ink);
+  box-shadow: var(--shadow-card);
   color: var(--erfolg);
   font-family: var(--font-body);
   font-size: var(--text-sm);

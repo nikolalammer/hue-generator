@@ -1,56 +1,77 @@
 /* ============================================================
    Aufgabolino – Design-System
-   90s Schulheft / Retro-Edutainment
-   Display: Bricolage Grotesque | Body: Figtree | Mono: JetBrains Mono
-   Ink: #1E3A8A | Hot: #DB2777 | Sun: #FDE047 | Paper: #FAF5E6
+   Memphis-Collage (warm, literarisch, verspielt-geometrisch)
+   Display: Fraunces | Body: DM Sans | Mono: DM Mono
+   Cream: #F4EADA | Ink: #2B2118 | Terracotta: #D2691E | Plum: #4A3444
    ============================================================ */
 
 :root {
-  /* --- Kern-Palette --- */
-  --ink:      #1E3A8A;   /* Cobalt – Haupttinte, Rahmen, Headings */
-  --ink-soft: #2D4FA3;   /* gedämpftes Cobalt – Fließtext */
-  --hot:      #DB2777;   /* Magenta – scharfer Akzent, Offset-Shadow */
-  --sun:      #FDE047;   /* Sonnengelb – Belohnungsmomente */
-  --paper:    #FAF5E6;   /* Elfenbein – Papiergrund, niemals reines Weiß */
-  --lime:     #A3E635;   /* Chartreuse – Schüler-Seite, Englisch-Fach */
+  /* --- Farben – Grundpalette --- */
+  --cream:    #F4EADA;   /* Grundton / Background */
+  --paper:    #FBF5E8;   /* Leicht hellere Variante */
+  --surface:  #FFFFFF;   /* Karten, Options */
+  --ink:      #2B2118;   /* Haupt-Textfarbe */
+  --ink-soft: #5A4A3D;   /* Sekundär-Text */
+
+  /* --- Akzent-Palette --- */
+  --terracotta: #D2691E; /* Primäre Aktion, Markierung */
+  --olive:      #556B2F; /* Richtig, Bestätigung */
+  --plum:       #4A3444; /* Headlines, Kontrast */
+  --rose:       #E8A5A5; /* Dekoratives Element */
+  --sky:        #7BA7BC; /* Info, sekundäre Akzente */
+  --butter:     #F2CE72; /* Highlight, Tag-Background */
+  --coral:      #C85250; /* Falsch, Fehler */
+
+  /* --- Fach-Farben --- */
+  --subject-deutsch:    #D2691E;
+  --subject-mathematik: #7BA7BC;
+  --subject-englisch:   #556B2F;
+  --subject-geschichte: #4A3444;
+  --subject-biologie:   #6B8E4E;
+
+  /* --- Aliase für Alt-Referenzen (Mapping laut Migrationsplan) ---
+     --hot (Magenta-Akzent) → Terracotta, --sun (Gelb) → Butter,
+     --lime (Chartreuse) → Olive. Fehler-Kontexte nutzen --coral. */
+  --hot:  var(--terracotta);
+  --sun:  var(--butter);
+  --lime: var(--olive);
 
   /* --- Semantische Farben --- */
-  --erfolg:        #16A34A;
-  --erfolg-hell:   #DCFCE7;
-  --erfolg-border: #86EFAC;
+  --erfolg:        var(--olive);
+  --erfolg-hell:   #EDF0DF;
+  --erfolg-border: rgba(85, 107, 47, 0.4);
 
-  --fehler:        var(--hot);
-  --fehler-hell:   #FCE7F3;
-  --fehler-border: #F9A8D4;
+  --fehler:        var(--coral);
+  --fehler-hell:   #FAEBE7;
+  --fehler-border: rgba(200, 82, 80, 0.4);
 
   /* --- Oberflächen --- */
-  --bg:      var(--paper);
-  --surface: var(--paper);
-  --border:  rgba(30, 58, 138, 0.18);
+  --bg:     var(--cream);
+  --border: rgba(43, 33, 24, 0.12);
 
   /* --- Text --- */
-  --text:         var(--ink-soft);
-  --text-muted:   rgba(30, 58, 138, 0.5);
-  --text-heading: var(--ink);
+  --text:         var(--ink);
+  --text-muted:   rgba(43, 33, 24, 0.5);
+  --text-heading: var(--plum);
 
   /* --- Typografie --- */
-  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
-  --font-body:    'Figtree', system-ui, sans-serif;
+  --font-display: 'Fraunces', 'Instrument Serif', Georgia, serif;
+  --font-body:    'DM Sans', system-ui, -apple-system, sans-serif;
   /* Aliases für bestehende Code-Referenzen */
-  --font-sans:    'Figtree', system-ui, sans-serif;
-  --font-heading: 'Bricolage Grotesque', system-ui, sans-serif;
-  --font-mono:    'JetBrains Mono', monospace;
+  --font-sans:    'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Fraunces', 'Instrument Serif', Georgia, serif;
+  --font-mono:    'DM Mono', 'JetBrains Mono', monospace;
 
   /* --- Schriftgrößen --- */
-  --text-xs:   12px;
-  --text-sm:   14px;
+  --text-xs:   11px;
+  --text-sm:   13px;
   --text-base: 16px;
   --text-lg:   18px;
-  --text-xl:   20px;
-  --text-2xl:  24px;
-  --text-3xl:  32px;
-  --text-4xl:  40px;
-  --text-5xl:  52px;
+  --text-xl:   22px;
+  --text-2xl:  28px;
+  --text-3xl:  36px;
+  --text-4xl:  48px;
+  --text-5xl:  64px;
 
   /* --- Abstände (8-px-Grid) --- */
   --space-1:  4px;
@@ -64,52 +85,61 @@
   --space-12: 48px;
   --space-16: 64px;
 
-  /* --- Flat Offset-Shadows (kein Gauß'sches Weichzeichnen mehr) --- */
-  --shadow-sm: 2px 2px 0 var(--ink);
-  --shadow-md: 3px 3px 0 var(--hot);
-  --shadow-lg: 4px 4px 0 var(--hot);
-  --shadow-xl: 6px 6px 0 var(--hot);
+  /* --- Schatten – weich, nie hart --- */
+  --shadow-sm:   0 2px 4px rgba(43, 33, 24, 0.04);
+  --shadow-md:   0 4px 12px rgba(43, 33, 24, 0.08);
+  --shadow-lg:   0 20px 60px rgba(43, 33, 24, 0.12);
+  --shadow-xl:   0 20px 60px rgba(43, 33, 24, 0.12);
+  --shadow-card: 0 2px 4px rgba(43, 33, 24, 0.04), 0 20px 60px rgba(43, 33, 24, 0.08);
 
-  /* --- Radii – kantig, kein rounded-2xl-Look --- */
-  --radius-sm:   0px;
-  --radius-md:   0px;
-  --radius-lg:   0px;
-  --radius-full: 0px;
+  /* --- Radien --- */
+  --r-sm:   8px;
+  --r-md:   16px;
+  --r-lg:   24px;
+  --r-xl:   32px;
+  --r-full: 9999px;
+  /* Aliases für Alt-Referenzen */
+  --radius-sm:   var(--r-sm);
+  --radius-md:   var(--r-md);
+  --radius-lg:   var(--r-lg);
+  --radius-full: var(--r-full);
 
   /* --- Transitions --- */
-  --transition: 60ms ease-out;
+  --t-quick:  150ms cubic-bezier(.4, 0, .2, 1);
+  --t-smooth: 300ms cubic-bezier(.4, 0, .2, 1);
+  --transition: 150ms cubic-bezier(.4, 0, .2, 1);
 
   /* --- Aliases für ältere CSS-Referenzen --- */
-  --primary-500: var(--ink);    /* accent-color in VorschauEditor */
-  --primary-700: var(--ink);
-  --primary-50:  rgba(30, 58, 138, 0.04);
-  --primary-100: rgba(30, 58, 138, 0.08);
-  --primary-200: rgba(30, 58, 138, 0.15);
-  --primary-300: rgba(30, 58, 138, 0.25);
-  --secondary-50:  rgba(30, 58, 138, 0.04);
-  --secondary-200: rgba(30, 58, 138, 0.15);
-  --secondary-300: rgba(30, 58, 138, 0.25);
+  --primary-500: var(--terracotta);
+  --primary-700: var(--plum);
+  --primary-50:  rgba(43, 33, 24, 0.04);
+  --primary-100: rgba(43, 33, 24, 0.08);
+  --primary-200: rgba(43, 33, 24, 0.15);
+  --primary-300: rgba(43, 33, 24, 0.25);
+  --secondary-50:  rgba(43, 33, 24, 0.04);
+  --secondary-200: rgba(43, 33, 24, 0.15);
+  --secondary-300: rgba(43, 33, 24, 0.25);
   --secondary-400: var(--ink-soft);
   --secondary-500: var(--ink);
   --secondary-600: var(--ink);
   --secondary-700: var(--ink);
-  --neutral-50:  rgba(30, 58, 138, 0.03);
-  --neutral-100: rgba(30, 58, 138, 0.07);
-  --neutral-200: rgba(30, 58, 138, 0.12);
-  --neutral-300: rgba(30, 58, 138, 0.2);
-  --neutral-400: rgba(30, 58, 138, 0.35);
-  --neutral-500: rgba(30, 58, 138, 0.5);
+  --neutral-50:  rgba(43, 33, 24, 0.03);
+  --neutral-100: rgba(43, 33, 24, 0.07);
+  --neutral-200: rgba(43, 33, 24, 0.12);
+  --neutral-300: rgba(43, 33, 24, 0.2);
+  --neutral-400: rgba(43, 33, 24, 0.35);
+  --neutral-500: rgba(43, 33, 24, 0.5);
   --neutral-600: var(--ink-soft);
   --neutral-700: var(--ink);
   --neutral-900: var(--ink);
-  --warnung-hell:   rgba(253, 224, 71, 0.2);
-  --warnung-border: rgba(253, 224, 71, 0.6);
-  --accent-700: var(--ink);
-  --accent-500: var(--ink);
-  --accent-600: var(--ink);
-  --info:        var(--ink-soft);
-  --info-hell:   rgba(30, 58, 138, 0.05);
-  --info-border: rgba(30, 58, 138, 0.2);
+  --warnung-hell:   rgba(242, 206, 114, 0.25);
+  --warnung-border: rgba(242, 206, 114, 0.7);
+  --accent-700: var(--plum);
+  --accent-500: var(--terracotta);
+  --accent-600: var(--terracotta);
+  --info:        var(--sky);
+  --info-hell:   rgba(123, 167, 188, 0.12);
+  --info-border: rgba(123, 167, 188, 0.4);
 }
 
 /* ============================================================
@@ -132,19 +162,15 @@ body {
   font-size: var(--text-base);
   line-height: 1.5;
   color: var(--text);
-  background: var(--paper);
+  /* Cream-Grundton mit zwei subtilen Radial-Gradients (atmosphärische Wärme) */
+  background: var(--cream);
+  background-image:
+    radial-gradient(circle at 20% 15%, rgba(210, 105, 30, 0.08), transparent 40%),
+    radial-gradient(circle at 85% 70%, rgba(123, 167, 188, 0.1), transparent 40%);
+  background-attachment: fixed;
 }
 
-/* Papier-Grain via SVG feTurbulence – 4% Opacity, pointer-events none */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9998;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  background-size: 200px 200px;
-}
+/* Kein Grain-Overlay mehr – gehört zum Risograph-Stil, nicht zu Memphis-Collage */
 
 #root {
   min-height: 100svh;
@@ -154,11 +180,11 @@ body::after {
 
 h1, h2, h3, h4 {
   font-family: var(--font-display);
-  font-weight: 800;
-  color: var(--ink);
-  line-height: 1.1;
+  font-weight: 600;
+  color: var(--text-heading);
+  line-height: 1.25;
   margin: 0;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 p {
@@ -166,7 +192,7 @@ p {
 }
 
 a {
-  color: var(--ink);
+  color: var(--plum);
   text-decoration: none;
 }
 
@@ -185,12 +211,12 @@ a:hover {
   padding: var(--space-3) var(--space-6);
   font-family: var(--font-display);
   font-size: var(--text-sm);
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1;
-  border-radius: 0;
-  border: 2.5px solid var(--ink);
+  border-radius: var(--r-md);
+  border: 1.5px solid transparent;
   cursor: pointer;
-  transition: transform 60ms ease-out, box-shadow 60ms ease-out;
+  transition: background var(--t-quick), color var(--t-quick), transform var(--t-quick);
   white-space: nowrap;
   text-decoration: none !important;
   user-select: none;
@@ -198,50 +224,46 @@ a:hover {
 }
 
 .btn:disabled {
-  opacity: 0.4;
+  opacity: 0.5;
   cursor: not-allowed;
   transform: none !important;
-  box-shadow: none !important;
 }
 
-/* Press-Effekt: Shadow verschwindet, Button drückt sich ein */
 .btn:active:not(:disabled) {
-  transform: translate(4px, 4px) !important;
-  box-shadow: none !important;
+  transform: translateY(0);
 }
 
-/* Primary: Cobalt-Fill, Papier-Text, Magenta-Offset-Shadow */
+/* Primary: Plum-Fill, Cream-Text */
 .btn-primary {
-  background: var(--ink);
-  color: var(--paper) !important;
-  box-shadow: 4px 4px 0 var(--hot);
+  background: var(--plum);
+  color: var(--cream) !important;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #152a6e;
+  background: var(--terracotta);
+  transform: translateY(-2px);
 }
 
-/* Secondary: Papier-Fill, Cobalt-Rahmen + Shadow */
+/* Secondary: transparent, Plum-Rahmen */
 .btn-secondary {
-  background: var(--paper);
-  color: var(--ink) !important;
-  box-shadow: 4px 4px 0 var(--ink);
+  background: transparent;
+  color: var(--plum) !important;
+  border-color: var(--plum);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: rgba(30, 58, 138, 0.05);
+  background: var(--plum);
+  color: var(--cream) !important;
 }
 
-/* Danger: Magenta-Fill, Papier-Text */
+/* Danger: Coral-Fill, Cream-Text */
 .btn-danger {
-  background: var(--hot);
-  color: var(--paper) !important;
-  border-color: var(--hot);
-  box-shadow: 4px 4px 0 var(--ink);
+  background: var(--coral);
+  color: var(--cream) !important;
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: #be185d;
+  background: #B04543;
 }
 
 /* ============================================================
@@ -255,8 +277,8 @@ a:hover {
   display: inline-block;
   width: 20px;
   height: 20px;
-  border: 2.5px solid rgba(30, 58, 138, 0.15);
-  border-top-color: var(--ink);
+  border: 2.5px solid rgba(43, 33, 24, 0.15);
+  border-top-color: var(--terracotta);
   border-radius: 50%;
   animation: drehen 0.7s linear infinite;
   flex-shrink: 0;
@@ -271,8 +293,8 @@ a:hover {
 }
 
 .skeleton {
-  background: rgba(30, 58, 138, 0.1);
-  border-radius: 0;
+  background: rgba(43, 33, 24, 0.08);
+  border-radius: var(--r-sm);
   animation: skeleton-pulse 1.5s ease-in-out infinite;
 }
 
@@ -312,5 +334,4 @@ a:hover {
 @media (prefers-reduced-motion: reduce) {
   .spinner  { animation: none; }
   .skeleton { animation: none; }
-  body::after { display: none; }
 }
