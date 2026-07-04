@@ -20,6 +20,18 @@ export default function VorschauEditor({ ergebnis, fach, thema, fokus, schwierig
           antwort: lt.antwort ?? '',
         }))
       : [],
+    wahrfalsch: Array.isArray(ergebnis.wahrfalsch)
+      ? ergebnis.wahrfalsch.map((wf) => ({
+          aussage: wf.aussage ?? '',
+          wahr: wf.wahr === true,
+        }))
+      : [],
+    zuordnung: Array.isArray(ergebnis.zuordnung)
+      ? ergebnis.zuordnung.map((p) => ({
+          begriff: p.begriff ?? '',
+          partner: p.partner ?? '',
+        }))
+      : [],
   }))
 
   const [speichert, setSpeichert] = useState(false)
@@ -89,6 +101,54 @@ export default function VorschauEditor({ ergebnis, fach, thema, fokus, schwierig
       )
       return { ...prev, lueckentexte: neueLueckentexte }
     })
+  }
+
+  // --- Wahr/Falsch: Aussage oder Wahrheitswert ändern ---
+  function wahrfalschAendern(wfIndex, feld, wert) {
+    setBearbeitet((prev) => ({
+      ...prev,
+      wahrfalsch: prev.wahrfalsch.map((wf, i) =>
+        i === wfIndex ? { ...wf, [feld]: wert } : wf
+      ),
+    }))
+  }
+
+  // --- Zuordnung: Begriff oder Partner ändern ---
+  function zuordnungAendern(zuIndex, feld, wert) {
+    setBearbeitet((prev) => ({
+      ...prev,
+      zuordnung: prev.zuordnung.map((p, i) =>
+        i === zuIndex ? { ...p, [feld]: wert } : p
+      ),
+    }))
+  }
+
+  // --- Einzelne Wahr/Falsch-Aussage neu generieren ---
+  async function wahrfalschNeuGenerieren(index) {
+    const key = `wf-${index}`
+    setNeuGeneriertWird((prev) => new Set(prev).add(key))
+    setNeuGenFehler((prev) => ({ ...prev, [key]: null }))
+
+    try {
+      const data = await edgeFunctionAufrufen(
+        { fach, thema, fokus: fokus || undefined, schwierigkeit: schwierigkeit || 'leicht', einzelaufgabe: 'wf' },
+        'Neu-Generierung fehlgeschlagen.'
+      )
+      if (!data.wahrfalsch) throw new Error('Neu-Generierung fehlgeschlagen.')
+
+      setBearbeitet((prev) => ({
+        ...prev,
+        wahrfalsch: prev.wahrfalsch.map((wf, i) => (i === index ? { ...data.wahrfalsch } : wf)),
+      }))
+    } catch (err) {
+      setNeuGenFehler((prev) => ({ ...prev, [key]: err.message }))
+    } finally {
+      setNeuGeneriertWird((prev) => {
+        const next = new Set(prev)
+        next.delete(key)
+        return next
+      })
+    }
   }
 
   // --- Einzelne MC-Frage neu generieren ---
@@ -292,6 +352,95 @@ export default function VorschauEditor({ ergebnis, fach, thema, fokus, schwierig
                 value={lt.antwort}
                 onChange={(e) => lueckentextAntwortAendern(li, e.target.value)}
                 aria-label={`Antwort zu Lückentext ${li + 1}`}
+              />
+            </div>
+          ))}
+        </>
+      )}
+
+      {/* Wahr/Falsch-Aussagen */}
+      {bearbeitet.wahrfalsch.length > 0 && (
+        <>
+          <p className="editor-abschnitt-label">Wahr/Falsch-Aussagen</p>
+          {bearbeitet.wahrfalsch.map((wf, wi) => (
+            <div key={wi} className="editor-frageblock">
+              <div className="editor-block-kopf">
+                <p className="editor-frage-nummer">Aussage {wi + 1}</p>
+                <button
+                  type="button"
+                  className="editor-neu-btn"
+                  onClick={() => wahrfalschNeuGenerieren(wi)}
+                  disabled={neuGeneriertWird.has(`wf-${wi}`)}
+                  title="Diese Aussage durch die KI neu generieren"
+                >
+                  {neuGeneriertWird.has(`wf-${wi}`) ? '⏳ Generiert...' : '↻ Neu generieren'}
+                </button>
+              </div>
+              {neuGenFehler[`wf-${wi}`] && (
+                <div className="editor-neu-fehler">{neuGenFehler[`wf-${wi}`]}</div>
+              )}
+              <input
+                className="editor-input"
+                type="text"
+                value={wf.aussage}
+                onChange={(e) => wahrfalschAendern(wi, 'aussage', e.target.value)}
+                aria-label={`Aussage ${wi + 1}`}
+              />
+              <div className="editor-antworten">
+                <label className="editor-radio-label">
+                  <input
+                    type="radio"
+                    name={`wf-${wi}`}
+                    checked={wf.wahr === true}
+                    onChange={() => wahrfalschAendern(wi, 'wahr', true)}
+                    aria-label={`Aussage ${wi + 1} ist wahr`}
+                  />
+                  Wahr
+                </label>
+                <label className="editor-radio-label">
+                  <input
+                    type="radio"
+                    name={`wf-${wi}`}
+                    checked={wf.wahr === false}
+                    onChange={() => wahrfalschAendern(wi, 'wahr', false)}
+                    aria-label={`Aussage ${wi + 1} ist falsch`}
+                  />
+                  Falsch
+                </label>
+              </div>
+            </div>
+          ))}
+        </>
+      )}
+
+      {/* Zuordnungspaare */}
+      {bearbeitet.zuordnung.length > 0 && (
+        <>
+          <p className="editor-abschnitt-label">Zuordnungspaare</p>
+          {bearbeitet.zuordnung.map((paar, zi) => (
+            <div key={zi} className="editor-frageblock">
+              <p className="editor-frage-nummer">Paar {zi + 1}</p>
+              <label className="editor-abschnitt-label" htmlFor={`zu-begriff-${zi}`}>
+                Begriff
+              </label>
+              <input
+                id={`zu-begriff-${zi}`}
+                className="editor-input"
+                type="text"
+                value={paar.begriff}
+                onChange={(e) => zuordnungAendern(zi, 'begriff', e.target.value)}
+                aria-label={`Begriff ${zi + 1}`}
+              />
+              <label className="editor-abschnitt-label" htmlFor={`zu-partner-${zi}`}>
+                Passender Partner
+              </label>
+              <input
+                id={`zu-partner-${zi}`}
+                className="editor-input"
+                type="text"
+                value={paar.partner}
+                onChange={(e) => zuordnungAendern(zi, 'partner', e.target.value)}
+                aria-label={`Partner ${zi + 1}`}
               />
             </div>
           ))}
