@@ -1,7 +1,9 @@
 // Schüler-Ansicht: HÜ per Link abrufen und lösen
+// Wichtig: Die Lösungen kommen NIE vor der Abgabe in den Browser.
+// Laden und Auswerten laufen über die Edge Function (Modi "hole" und "auswerten").
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import supabase from '../lib/supabaseClient'
+import { edgeFunctionAufrufen } from '../lib/edgeFunction'
 import './HuePage.css'
 
 export default function HuePage() {
@@ -11,12 +13,12 @@ export default function HuePage() {
   const [laedt, setLaedt] = useState(true)
   const [fehler, setFehler] = useState(null)
 
-  // HÜ-Daten aus der Datenbank
+  // HÜ-Daten (ohne Lösungen!) aus der Edge Function
   const [fach, setFach] = useState('')
   const [thema, setThema] = useState('')
   const [text, setText] = useState('')
   const [fragen, setFragen] = useState([])
-  // Lückentext-Aufgaben aus aufgaben_json
+  // Lückentext-Aufgaben (nur Sätze, keine Antworten)
   const [lueckentexte, setLueckentexte] = useState([])
 
   // Schüler-Flow
@@ -27,36 +29,33 @@ export default function HuePage() {
   const [ausgewaehlt, setAusgewaehlt] = useState([])
   // Lückentext-Eingaben der Schüler (ein String pro Lückentext)
   const [lueckenAntworten, setLueckenAntworten] = useState([])
-  const [ausgewertet, setAusgewertet] = useState(false)
+  // auswertung: null bis zur Abgabe, danach { richtig, gesamt, prozent, mcLoesungen, ltLoesungen }
+  const [auswertung, setAuswertung] = useState(null)
   const [sendet, setSendet] = useState(false)
   const [speichernFehler, setSpeichernFehler] = useState(null)
 
-  // HÜ beim ersten Laden aus Supabase holen
+  const ausgewertet = auswertung !== null
+
+  // HÜ beim ersten Laden über die Edge Function holen (liefert keine Lösungen aus)
   useEffect(() => {
     async function laden() {
-      const { data, error } = await supabase
-        .from('hausuebungen')
-        .select('*')
-        .eq('id', id)
-        .single()
+      try {
+        const data = await edgeFunctionAufrufen({ hole: id }, 'Diese Hausübung wurde nicht gefunden.')
 
-      if (error || !data) {
-        setFehler('Diese Hausübung wurde nicht gefunden.')
+        setFach(data.fach || '')
+        setThema(data.thema || '')
+        setText(data.text || '')
+        const geladeneFragen = Array.isArray(data.fragen) ? data.fragen : []
+        setFragen(geladeneFragen)
+        setAusgewaehlt(new Array(geladeneFragen.length).fill(null))
+        const lts = Array.isArray(data.lueckentexte) ? data.lueckentexte : []
+        setLueckentexte(lts)
+        setLueckenAntworten(new Array(lts.length).fill(''))
+      } catch (err) {
+        setFehler(err.message || 'Diese Hausübung wurde nicht gefunden.')
+      } finally {
         setLaedt(false)
-        return
       }
-
-      // aufgaben_json enthält { text, fragen, lueckentexte? }
-      setFach(data.fach || '')
-      setThema(data.thema || '')
-      setText(data.aufgaben_json.text)
-      setFragen(data.aufgaben_json.fragen)
-      setAusgewaehlt(new Array(data.aufgaben_json.fragen.length).fill(null))
-      // Lückentexte aus aufgaben_json laden (leer wenn kein Lückentext)
-      const lts = data.aufgaben_json.lueckentexte || []
-      setLueckentexte(lts)
-      setLueckenAntworten(new Array(lts.length).fill(''))
-      setLaedt(false)
     }
 
     laden()
@@ -82,44 +81,37 @@ export default function HuePage() {
     setNummerBestaetigt(true)
   }
 
-  // Auswertung und Speicherung in Supabase
+  // Auswertung passiert serverseitig – der Browser kennt die Lösungen erst danach
   async function auswerten() {
     // sendet verhindert doppelten Submit (Button ist disabled bis Antwort da)
     setSendet(true)
     setSpeichernFehler(null)
 
-    // MC-Auswertung
-    const richtigMC = fragen.filter((f, i) => ausgewaehlt[i] === f.korrekt).length
-    // Lückentext-Auswertung: case-insensitive, trim, Umlaute strikt
-    const richtigLT = lueckentexte.filter((lt, i) =>
-      lueckenAntworten[i].trim().toLowerCase() === lt.antwort.trim().toLowerCase()
-    ).length
-    const richtig = richtigMC + richtigLT
-    const gesamt = fragen.length + lueckentexte.length
-    const prozent = Math.round((richtig / gesamt) * 100)
+    try {
+      const data = await edgeFunctionAufrufen({
+        auswerten: {
+          hausuebung_id: id,
+          schueler_klasse: schuelerKlasse.trim().toLowerCase(),
+          schueler_nummer: parseInt(schuelerNummer, 10),
+          mcAntworten: ausgewaehlt,
+          ltAntworten: lueckenAntworten,
+        },
+      }, 'Ergebnis konnte nicht gespeichert werden.')
 
-    // Ergebnis mit hausuebung_id und Klasse speichern
-    const { error } = await supabase.from('ergebnisse').insert({
-      fach,
-      thema,
-      schueler_nummer: parseInt(schuelerNummer, 10),
-      schueler_klasse: schuelerKlasse.trim().toLowerCase(),
-      richtige_antworten: richtig,
-      gesamt_fragen: gesamt,
-      prozent,
-      hausuebung_id: id,
-    })
-
-    if (error) {
-      console.error('Supabase Fehler:', error)
-      setSpeichernFehler('Ergebnis konnte nicht gespeichert werden.')
+      // Erst nach erfolgreichem Speichern anzeigen
+      setAuswertung(data)
+    } catch (err) {
+      console.error('Auswertungs-Fehler:', err)
+      setSpeichernFehler(err.message || 'Ergebnis konnte nicht gespeichert werden.')
+    } finally {
       setSendet(false)
-      return
     }
+  }
 
-    // Erst nach erfolgreichem Speichern anzeigen
-    setAusgewertet(true)
-    setSendet(false)
+  // Lückentext-Korrektheit kommt fertig bewertet vom Server (ltKorrekt-Array).
+  // Defensiv gegen Index-Verschiebung, falls die Lehrperson die HÜ zwischenzeitlich geändert hat.
+  function lueckeKorrekt(i) {
+    return auswertung?.ltKorrekt?.[i] === true
   }
 
   // Ladezustand – Skeleton-Platzhalter
@@ -214,8 +206,8 @@ export default function HuePage() {
               <ul className="antwortliste">
                 {frage.antworten.map((antwort, j) => {
                   const gewaehlt = ausgewaehlt[i] === j
-                  const korrekt = ausgewertet && j === frage.korrekt
-                  const falsch = ausgewertet && gewaehlt && j !== frage.korrekt
+                  const korrekt = ausgewertet && j === auswertung.mcLoesungen[i]
+                  const falsch = ausgewertet && gewaehlt && j !== auswertung.mcLoesungen[i]
                   return (
                     <li
                       key={j}
@@ -254,11 +246,7 @@ export default function HuePage() {
                       <input
                         className={[
                           'luecken-input',
-                          ausgewertet
-                            ? lueckenAntworten[i].trim().toLowerCase() === lt.antwort.trim().toLowerCase()
-                              ? 'korrekt'
-                              : 'falsch'
-                            : '',
+                          ausgewertet ? (lueckeKorrekt(i) ? 'korrekt' : 'falsch') : '',
                         ].filter(Boolean).join(' ')}
                         type="text"
                         value={lueckenAntworten[i]}
@@ -270,15 +258,13 @@ export default function HuePage() {
                         }}
                         disabled={ausgewertet}
                         placeholder="Antwort..."
-                        size={Math.max(10, (lt.antwort.length + 4))}
+                        size={14}
                       />
                       {teile[1]}
                     </span>
                     {ausgewertet && (
-                      <span className={`luecken-korrektur ${lueckenAntworten[i].trim().toLowerCase() === lt.antwort.trim().toLowerCase() ? 'korrekt' : 'falsch'}`}>
-                        {lueckenAntworten[i].trim().toLowerCase() === lt.antwort.trim().toLowerCase()
-                          ? '✓'
-                          : `✗ Richtig: ${lt.antwort}`}
+                      <span className={`luecken-korrektur ${lueckeKorrekt(i) ? 'korrekt' : 'falsch'}`}>
+                        {lueckeKorrekt(i) ? '✓' : `✗ Richtig: ${auswertung.ltLoesungen?.[i] ?? '–'}`}
                       </span>
                     )}
                   </div>
@@ -295,7 +281,7 @@ export default function HuePage() {
             disabled={ausgewertet || sendet || ausgewaehlt.some((a) => a === null) || lueckenAntworten.some((a) => a.trim() === '')}
           >
             {sendet
-              ? 'Wird gespeichert...'
+              ? 'Wird ausgewertet...'
               : (ausgewaehlt.some((a) => a === null) || lueckenAntworten.some((a) => a.trim() === ''))
                 ? `Noch ${ausgewaehlt.filter((a) => a === null).length + lueckenAntworten.filter((a) => a.trim() === '').length} Aufgabe(n) offen`
                 : 'Auswerten'}
@@ -303,10 +289,7 @@ export default function HuePage() {
 
           {/* Ergebnis-Zusammenfassung – Prozent-Badge + Originaltext */}
           {ausgewertet && (() => {
-            const richtig = fragen.filter((f, i) => ausgewaehlt[i] === f.korrekt).length
-              + lueckentexte.filter((lt, i) => lueckenAntworten[i].trim().toLowerCase() === lt.antwort.trim().toLowerCase()).length
-            const gesamt = fragen.length + lueckentexte.length
-            const prozent = Math.round((richtig / gesamt) * 100)
+            const { richtig, gesamt, prozent } = auswertung
             const istPerfekt = richtig === gesamt
             return (
               <div className={`ergebnis-zusammenfassung-wrapper ${istPerfekt ? 'perfekt' : ''}`}>
