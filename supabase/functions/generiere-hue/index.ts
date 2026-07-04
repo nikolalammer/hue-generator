@@ -36,6 +36,36 @@ QUALITÄTSKRITERIEN FÜR AUFGABEN:
 - Schwierigkeit altersgerecht für 10–14-Jährige (Mittelschule, 5.–8. Schulstufe).
 - Sprache: einfach, kurze Sätze, keine Fachsprache außer wenn sie gelehrt werden soll.`;
 
+// Hausübung per ID mit Service-Role aus der DB laden (null wenn nicht gefunden)
+async function hausuebungLaden(id: string): Promise<{
+  id: string;
+  fach: string;
+  thema: string;
+  aufgaben_json: { text?: string; fragen?: unknown[]; lueckentexte?: unknown[] };
+} | null> {
+  // UUID-Format prüfen bevor die ID in die REST-URL eingebaut wird
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+    return null;
+  }
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const res = await fetch(
+    `${supabaseUrl}/rest/v1/hausuebungen?id=eq.${id}&select=id,fach,thema,aufgaben_json`,
+    {
+      headers: {
+        'apikey': supabaseServiceKey,
+        'Authorization': `Bearer ${supabaseServiceKey}`,
+      },
+    }
+  );
+  if (!res.ok) {
+    console.error('Supabase Lade-Fehler:', await res.text());
+    return null;
+  }
+  const zeilen = await res.json();
+  return Array.isArray(zeilen) && zeilen.length > 0 ? zeilen[0] : null;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -44,6 +74,7 @@ Deno.serve(async (req: Request) => {
   try {
     // fokus: optionaler Lehrer-Hinweis der als harte Vorgabe in den Prompt einfließt
     // schwierigkeit: "leicht" | "mittel" | "schwer" (default: "leicht")
+    const body = await req.json();
     const {
       fach,
       thema,
@@ -52,7 +83,121 @@ Deno.serve(async (req: Request) => {
       umfang = 'mittel',
       schwierigkeit = 'leicht',
       einzelaufgabe,
-    } = await req.json();
+    } = body;
+
+    // --- Modus "hole": HÜ für die Schüler-Ansicht laden – OHNE Lösungen ---
+    // Die Lösungen (korrekt-Index, Lückentext-Antworten) dürfen den Server erst
+    // nach der Abgabe verlassen, sonst können Schüler sie im Browser auslesen.
+    if (typeof body.hole === 'string') {
+      const hue = await hausuebungLaden(body.hole);
+      if (!hue) {
+        return new Response(
+          JSON.stringify({ fehler: 'Diese Hausübung wurde nicht gefunden.' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      const aufgaben = hue.aufgaben_json ?? {};
+      const ohneLoesungen = {
+        fach: hue.fach ?? '',
+        thema: hue.thema ?? '',
+        text: aufgaben.text ?? '',
+        fragen: (Array.isArray(aufgaben.fragen) ? aufgaben.fragen : []).map(
+          (f: { frage: string; antworten: string[] }) => ({ frage: f.frage, antworten: f.antworten })
+        ),
+        lueckentexte: (Array.isArray(aufgaben.lueckentexte) ? aufgaben.lueckentexte : []).map(
+          (lt: { satz: string }) => ({ satz: lt.satz })
+        ),
+      };
+      return new Response(JSON.stringify(ohneLoesungen), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // --- Modus "auswerten": Schülerantworten serverseitig bewerten und speichern ---
+    if (body.auswerten && typeof body.auswerten === 'object') {
+      const {
+        hausuebung_id,
+        schueler_klasse,
+        schueler_nummer,
+        mcAntworten = [],
+        ltAntworten = [],
+      } = body.auswerten;
+
+      const nummer = parseInt(schueler_nummer, 10);
+      const klasse = String(schueler_klasse ?? '').trim().toLowerCase();
+      if (!/^\d[a-z]$/.test(klasse) || !(nummer >= 1 && nummer <= 40)) {
+        return new Response(
+          JSON.stringify({ fehler: 'Ungültige Klasse oder Katalognummer.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const hue = await hausuebungLaden(String(hausuebung_id ?? ''));
+      if (!hue) {
+        return new Response(
+          JSON.stringify({ fehler: 'Diese Hausübung wurde nicht gefunden.' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const fragen = Array.isArray(hue.aufgaben_json?.fragen) ? hue.aufgaben_json.fragen : [];
+      const lueckentexte = Array.isArray(hue.aufgaben_json?.lueckentexte) ? hue.aufgaben_json.lueckentexte : [];
+
+      // MC: Index-Vergleich | Lückentext: case-insensitiv, Whitespace-trim, Umlaute strikt
+      const richtigMC = fragen.filter(
+        (f: { korrekt: number }, i: number) => mcAntworten[i] === f.korrekt
+      ).length;
+      const richtigLT = lueckentexte.filter(
+        (lt: { antwort: string }, i: number) =>
+          String(ltAntworten[i] ?? '').trim().toLowerCase() === lt.antwort.trim().toLowerCase()
+      ).length;
+      const richtig = richtigMC + richtigLT;
+      const gesamt = fragen.length + lueckentexte.length;
+      const prozent = gesamt > 0 ? Math.round((richtig / gesamt) * 100) : 0;
+
+      // Ergebnis mit Service-Role speichern (Schüler brauchen kein Insert-Recht mehr)
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const insertRes = await fetch(`${supabaseUrl}/rest/v1/ergebnisse`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': supabaseServiceKey,
+          'Authorization': `Bearer ${supabaseServiceKey}`,
+        },
+        body: JSON.stringify({
+          fach: hue.fach,
+          thema: hue.thema,
+          schueler_nummer: nummer,
+          schueler_klasse: klasse,
+          richtige_antworten: richtig,
+          gesamt_fragen: gesamt,
+          prozent,
+          hausuebung_id: hue.id,
+        }),
+      });
+
+      if (!insertRes.ok) {
+        const insertFehler = await insertRes.text();
+        console.error('Supabase Ergebnis-Speicher-Fehler:', insertFehler);
+        return new Response(
+          JSON.stringify({ fehler: 'Ergebnis konnte nicht gespeichert werden.' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Erst NACH erfolgreichem Speichern die Lösungen fürs Feedback zurückgeben
+      return new Response(
+        JSON.stringify({
+          richtig,
+          gesamt,
+          prozent,
+          mcLoesungen: fragen.map((f: { korrekt: number }) => f.korrekt),
+          ltLoesungen: lueckentexte.map((lt: { antwort: string }) => lt.antwort),
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     if (!fach || !thema) {
       return new Response(
