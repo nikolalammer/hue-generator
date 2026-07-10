@@ -2,6 +2,8 @@
 // Der API-Key wird als Supabase-Secret gespeichert (nie im Frontend)
 // Verwendet tool_use (function calling) für zuverlässiges JSON-Output
 
+import { hueOhneLoesungen, bewerteAbgabe, klasseNummerGueltig } from './logik.ts';
+
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 
 const corsHeaders = {
@@ -52,14 +54,26 @@ function jsonAntwort(daten: unknown, status = 200): Response {
   });
 }
 
-// Fisher-Yates-Mischen (Math.random via sort wäre verzerrt)
-function mischen<T>(arr: T[]): T[] {
-  const kopie = [...arr];
-  for (let i = kopie.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [kopie[i], kopie[j]] = [kopie[j], kopie[i]];
+// Prüft ob der Aufrufer eine eingeloggte Lehrperson ist (User-JWT, nicht nur Anon-Key).
+// Die Generierung kostet Anthropic-Guthaben – der reine Anon-Key aus dem
+// Frontend-Bundle darf sie deshalb nicht auslösen. Gibt die User-ID zurück oder null.
+// Bewusst ein Roundtrip zu /auth/v1/user statt lokalem JWT-Decode: prüft auch
+// widerrufene Sessions, und die Latenz ist neben dem Anthropic-Call irrelevant.
+async function eingeloggteLehrperson(req: Request): Promise<string | null> {
+  const jwt = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
+  if (!jwt) return null;
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    headers: {
+      'apikey': Deno.env.get('SUPABASE_ANON_KEY')!,
+      'Authorization': `Bearer ${jwt}`,
+    },
+  });
+  if (!res.ok) {
+    await res.body?.cancel();
+    return null;
   }
-  return kopie;
+  const user = await res.json();
+  return typeof user?.id === 'string' ? user.id : null;
 }
 
 // Hausübung per ID mit Service-Role aus der DB laden (null wenn nicht gefunden)
@@ -113,40 +127,25 @@ Deno.serve(async (req: Request) => {
     // --- Modus "hole": HÜ für die Schüler-Ansicht laden – OHNE Lösungen ---
     // Die Lösungen (korrekt-Index, Lückentext-Antworten) dürfen den Server erst
     // nach der Abgabe verlassen, sonst können Schüler sie im Browser auslesen.
-    if (typeof body.hole === 'string') {
-      const hue = await hausuebungLaden(body.hole);
+    if ('hole' in body) {
+      // Auch bei falschem Typ (Zahl, Objekt) als Schüler-Anfrage behandeln –
+      // sonst fiele der Request in den Lehrer-Auth-Check und ergäbe ein irreführendes 401
+      const hue = typeof body.hole === 'string' ? await hausuebungLaden(body.hole) : null;
       if (!hue) {
         return jsonAntwort({ fehler: 'Diese Hausübung wurde nicht gefunden.' }, 404);
       }
-      const aufgaben = hue.aufgaben_json ?? {};
-      const zuordnung = Array.isArray(aufgaben.zuordnung) ? aufgaben.zuordnung : [];
       return jsonAntwort({
         fach: hue.fach ?? '',
         thema: hue.thema ?? '',
-        text: aufgaben.text ?? '',
-        fragen: (Array.isArray(aufgaben.fragen) ? aufgaben.fragen : []).map(
-          (f: { frage: string; antworten: string[] }) => ({ frage: f.frage, antworten: f.antworten })
-        ),
-        lueckentexte: (Array.isArray(aufgaben.lueckentexte) ? aufgaben.lueckentexte : []).map(
-          (lt: { satz: string }) => ({ satz: lt.satz })
-        ),
-        // Wahr/Falsch: nur die Aussagen, nicht die Wahrheitswerte
-        wahrfalsch: (Array.isArray(aufgaben.wahrfalsch) ? aufgaben.wahrfalsch : []).map(
-          (wf: { aussage: string }) => ({ aussage: wf.aussage })
-        ),
-        // Zuordnung: Begriffe in Originalreihenfolge, Partner GEMISCHT –
-        // die Reihenfolge darf die richtige Paarung nicht verraten
-        zuordnung: zuordnung.length > 0
-          ? {
-              begriffe: zuordnung.map((p: { begriff?: string }) => String(p?.begriff ?? '')),
-              partner: mischen(zuordnung.map((p: { partner?: string }) => String(p?.partner ?? ''))),
-            }
-          : null,
+        ...hueOhneLoesungen(hue.aufgaben_json ?? {}),
       });
     }
 
     // --- Modus "auswerten": Schülerantworten serverseitig bewerten und speichern ---
-    if (body.auswerten && typeof body.auswerten === 'object') {
+    if ('auswerten' in body) {
+      if (!body.auswerten || typeof body.auswerten !== 'object') {
+        return jsonAntwort({ fehler: 'Ungültige Abgabe.' }, 400);
+      }
       const {
         hausuebung_id,
         schueler_klasse,
@@ -159,7 +158,7 @@ Deno.serve(async (req: Request) => {
 
       const nummer = parseInt(schueler_nummer, 10);
       const klasse = String(schueler_klasse ?? '').trim().toLowerCase();
-      if (!/^\d[a-z]$/.test(klasse) || !(nummer >= 1 && nummer <= 40)) {
+      if (!klasseNummerGueltig(klasse, nummer)) {
         return jsonAntwort({ fehler: 'Ungültige Klasse oder Katalognummer.' }, 400);
       }
 
@@ -168,36 +167,10 @@ Deno.serve(async (req: Request) => {
         return jsonAntwort({ fehler: 'Diese Hausübung wurde nicht gefunden.' }, 404);
       }
 
-      const fragen = Array.isArray(hue.aufgaben_json?.fragen) ? hue.aufgaben_json.fragen : [];
-      const lueckentexte = Array.isArray(hue.aufgaben_json?.lueckentexte) ? hue.aufgaben_json.lueckentexte : [];
-      const wahrfalsch = Array.isArray(hue.aufgaben_json?.wahrfalsch) ? hue.aufgaben_json.wahrfalsch : [];
-      const zuordnung = Array.isArray(hue.aufgaben_json?.zuordnung) ? hue.aufgaben_json.zuordnung : [];
-
-      // MC: Index-Vergleich | Lückentext: case-insensitiv, Whitespace-trim, Umlaute strikt
-      // Wahr/Falsch: Boolean-Vergleich | Zuordnung: exakter Partner-Text (kommt aus unseren Optionen).
-      // Defensiv gegen unvollständige aufgaben_json (Lehrer kann sie frei editieren).
-      const mcLoesungen = fragen.map((f: { korrekt?: number }) => f?.korrekt ?? -1);
-      const ltLoesungen = lueckentexte.map((lt: { antwort?: string }) => String(lt?.antwort ?? ''));
-      const ltKorrekt = ltLoesungen.map(
-        (antwort: string, i: number) =>
-          String(ltAntworten[i] ?? '').trim().toLowerCase() === antwort.trim().toLowerCase()
-      );
-      const wfLoesungen = wahrfalsch.map((wf: { wahr?: boolean }) => wf?.wahr === true);
-      const zuLoesungen = zuordnung.map((p: { partner?: string }) => String(p?.partner ?? ''));
-      const zuKorrekt = zuLoesungen.map(
-        (partner: string, i: number) => String(zuAntworten[i] ?? '') === partner
-      );
-      const richtigMC = mcLoesungen.filter(
-        (korrekt: number, i: number) => mcAntworten[i] === korrekt
-      ).length;
-      const richtigLT = ltKorrekt.filter(Boolean).length;
-      const richtigWF = wfLoesungen.filter(
-        (wahr: boolean, i: number) => wfAntworten[i] === wahr
-      ).length;
-      const richtigZU = zuKorrekt.filter(Boolean).length;
-      const richtig = richtigMC + richtigLT + richtigWF + richtigZU;
-      const gesamt = fragen.length + lueckentexte.length + wahrfalsch.length + zuordnung.length;
-      const prozent = gesamt > 0 ? Math.round((richtig / gesamt) * 100) : 0;
+      const bewertung = bewerteAbgabe(hue.aufgaben_json ?? {}, {
+        mcAntworten, ltAntworten, wfAntworten, zuAntworten,
+      });
+      const { richtig, gesamt, prozent } = bewertung;
 
       // Ergebnis mit Service-Role speichern (Schüler brauchen kein Insert-Recht mehr)
       const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/ergebnisse`, {
@@ -225,26 +198,23 @@ Deno.serve(async (req: Request) => {
 
       // Erst NACH erfolgreichem Speichern die Lösungen fürs Feedback zurückgeben.
       // Die Korrekt-Arrays kommen mit, damit der Client die Bewertung nicht nachrechnet.
-      return jsonAntwort({
-        richtig, gesamt, prozent,
-        mcLoesungen, ltLoesungen, ltKorrekt,
-        wfLoesungen, zuLoesungen, zuKorrekt,
-      });
+      return jsonAntwort(bewertung);
+    }
+
+    // --- Ab hier: Generierungs-Modi (kosten Anthropic-Guthaben) ---
+    // Nur für eingeloggte Lehrpersonen; Schüler-Modi (hole/auswerten) sind oben schon behandelt.
+    const lehrerId = await eingeloggteLehrperson(req);
+    if (!lehrerId) {
+      return jsonAntwort({ fehler: 'Bitte melde dich als Lehrperson an, um Hausübungen zu generieren.' }, 401);
     }
 
     if (!fach || !thema) {
-      return new Response(
-        JSON.stringify({ fehler: 'Fach und Thema sind erforderlich.' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonAntwort({ fehler: 'Fach und Thema sind erforderlich.' }, 400);
     }
 
     const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY');
     if (!anthropicKey) {
-      return new Response(
-        JSON.stringify({ fehler: 'API-Key nicht konfiguriert.' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonAntwort({ fehler: 'API-Key nicht konfiguriert.' }, 500);
     }
 
     // Schwierigkeitsgrad-Text für den Prompt
@@ -331,9 +301,7 @@ Deno.serve(async (req: Request) => {
       if (!einzelResult) throw new Error('Kein Ergebnis von der KI.');
 
       const returnKey = einzelaufgabe === 'mc' ? 'frage' : einzelaufgabe === 'lt' ? 'lueckentext' : 'wahrfalsch';
-      return new Response(JSON.stringify({ [returnKey]: einzelResult.input }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return jsonAntwort({ [returnKey]: einzelResult.input });
     }
 
     // Aufgabenanzahl je nach Umfang
@@ -491,10 +459,7 @@ Rufe das Tool "hausaufgabe_erstellen" auf.`;
     if (!anthropicResponse.ok) {
       const fehler = await anthropicResponse.text();
       console.error('Anthropic API Fehler:', fehler);
-      return new Response(
-        JSON.stringify({ fehler: 'KI-Generierung fehlgeschlagen.' }),
-        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonAntwort({ fehler: 'KI-Generierung fehlgeschlagen.' }, 502);
     }
 
     const anthropicDaten = await anthropicResponse.json();
@@ -507,21 +472,14 @@ Rufe das Tool "hausaufgabe_erstellen" auf.`;
 
     const hausübung = toolResult.input;
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-
-    const dbRes = await fetch(`${supabaseUrl}/rest/v1/hausuebungen`, {
+    const dbRes = await fetch(`${SUPABASE_URL}/rest/v1/hausuebungen`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': supabaseServiceKey,
-        'Authorization': `Bearer ${supabaseServiceKey}`,
-        'Prefer': 'return=representation',
-      },
+      headers: { ...SERVICE_HEADERS, 'Prefer': 'return=representation' },
       body: JSON.stringify({
         fach,
         thema,
         aufgaben_json: hausübung,
+        erstellt_von: lehrerId,
       }),
     });
 
@@ -533,15 +491,10 @@ Rufe das Tool "hausaufgabe_erstellen" auf.`;
 
     const [gespeichert] = await dbRes.json();
 
-    return new Response(JSON.stringify({ ...hausübung, id: gespeichert.id }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return jsonAntwort({ ...hausübung, id: gespeichert.id });
 
   } catch (fehler) {
     console.error('Unerwarteter Fehler:', fehler);
-    return new Response(
-      JSON.stringify({ fehler: 'Interner Serverfehler.' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return jsonAntwort({ fehler: 'Interner Serverfehler.' }, 500);
   }
 });
