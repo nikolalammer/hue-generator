@@ -57,6 +57,8 @@ function jsonAntwort(daten: unknown, status = 200): Response {
 // Prüft ob der Aufrufer eine eingeloggte Lehrperson ist (User-JWT, nicht nur Anon-Key).
 // Die Generierung kostet Anthropic-Guthaben – der reine Anon-Key aus dem
 // Frontend-Bundle darf sie deshalb nicht auslösen. Gibt die User-ID zurück oder null.
+// Bewusst ein Roundtrip zu /auth/v1/user statt lokalem JWT-Decode: prüft auch
+// widerrufene Sessions, und die Latenz ist neben dem Anthropic-Call irrelevant.
 async function eingeloggteLehrperson(req: Request): Promise<string | null> {
   const jwt = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
   if (!jwt) return null;
@@ -125,8 +127,10 @@ Deno.serve(async (req: Request) => {
     // --- Modus "hole": HÜ für die Schüler-Ansicht laden – OHNE Lösungen ---
     // Die Lösungen (korrekt-Index, Lückentext-Antworten) dürfen den Server erst
     // nach der Abgabe verlassen, sonst können Schüler sie im Browser auslesen.
-    if (typeof body.hole === 'string') {
-      const hue = await hausuebungLaden(body.hole);
+    if ('hole' in body) {
+      // Auch bei falschem Typ (Zahl, Objekt) als Schüler-Anfrage behandeln –
+      // sonst fiele der Request in den Lehrer-Auth-Check und ergäbe ein irreführendes 401
+      const hue = typeof body.hole === 'string' ? await hausuebungLaden(body.hole) : null;
       if (!hue) {
         return jsonAntwort({ fehler: 'Diese Hausübung wurde nicht gefunden.' }, 404);
       }
@@ -138,7 +142,10 @@ Deno.serve(async (req: Request) => {
     }
 
     // --- Modus "auswerten": Schülerantworten serverseitig bewerten und speichern ---
-    if (body.auswerten && typeof body.auswerten === 'object') {
+    if ('auswerten' in body) {
+      if (!body.auswerten || typeof body.auswerten !== 'object') {
+        return jsonAntwort({ fehler: 'Ungültige Abgabe.' }, 400);
+      }
       const {
         hausuebung_id,
         schueler_klasse,
@@ -202,18 +209,12 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!fach || !thema) {
-      return new Response(
-        JSON.stringify({ fehler: 'Fach und Thema sind erforderlich.' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonAntwort({ fehler: 'Fach und Thema sind erforderlich.' }, 400);
     }
 
     const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY');
     if (!anthropicKey) {
-      return new Response(
-        JSON.stringify({ fehler: 'API-Key nicht konfiguriert.' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonAntwort({ fehler: 'API-Key nicht konfiguriert.' }, 500);
     }
 
     // Schwierigkeitsgrad-Text für den Prompt
@@ -300,9 +301,7 @@ Deno.serve(async (req: Request) => {
       if (!einzelResult) throw new Error('Kein Ergebnis von der KI.');
 
       const returnKey = einzelaufgabe === 'mc' ? 'frage' : einzelaufgabe === 'lt' ? 'lueckentext' : 'wahrfalsch';
-      return new Response(JSON.stringify({ [returnKey]: einzelResult.input }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return jsonAntwort({ [returnKey]: einzelResult.input });
     }
 
     // Aufgabenanzahl je nach Umfang
@@ -460,10 +459,7 @@ Rufe das Tool "hausaufgabe_erstellen" auf.`;
     if (!anthropicResponse.ok) {
       const fehler = await anthropicResponse.text();
       console.error('Anthropic API Fehler:', fehler);
-      return new Response(
-        JSON.stringify({ fehler: 'KI-Generierung fehlgeschlagen.' }),
-        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonAntwort({ fehler: 'KI-Generierung fehlgeschlagen.' }, 502);
     }
 
     const anthropicDaten = await anthropicResponse.json();
@@ -476,17 +472,9 @@ Rufe das Tool "hausaufgabe_erstellen" auf.`;
 
     const hausübung = toolResult.input;
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-
-    const dbRes = await fetch(`${supabaseUrl}/rest/v1/hausuebungen`, {
+    const dbRes = await fetch(`${SUPABASE_URL}/rest/v1/hausuebungen`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': supabaseServiceKey,
-        'Authorization': `Bearer ${supabaseServiceKey}`,
-        'Prefer': 'return=representation',
-      },
+      headers: { ...SERVICE_HEADERS, 'Prefer': 'return=representation' },
       body: JSON.stringify({
         fach,
         thema,
@@ -503,15 +491,10 @@ Rufe das Tool "hausaufgabe_erstellen" auf.`;
 
     const [gespeichert] = await dbRes.json();
 
-    return new Response(JSON.stringify({ ...hausübung, id: gespeichert.id }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return jsonAntwort({ ...hausübung, id: gespeichert.id });
 
   } catch (fehler) {
     console.error('Unerwarteter Fehler:', fehler);
-    return new Response(
-      JSON.stringify({ fehler: 'Interner Serverfehler.' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return jsonAntwort({ fehler: 'Interner Serverfehler.' }, 500);
   }
 });

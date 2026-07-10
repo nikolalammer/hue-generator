@@ -81,6 +81,8 @@ export default function HuePage() {
     setKlasseNummernFehler(null)
 
     const num = parseInt(schuelerNummer, 10)
+    // Muss zur Server-Validierung passen (logik.ts: klasseNummerGueltig) –
+    // Großbuchstaben sind hier erlaubt, weil vor dem Senden lowercased wird
     const klasseGueltig = /^\d[a-zA-Z]$/.test(schuelerKlasse.trim())
     const nummerGueltig = num >= 1 && num <= 40
 

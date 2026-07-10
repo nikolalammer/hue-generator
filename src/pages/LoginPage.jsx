@@ -9,8 +9,12 @@ export default function LoginPage() {
   const [gesendet, setGesendet] = useState(false)
   const [laedt, setLaedt] = useState(false)
   const [fehler, setFehler] = useState(null)
-  // Von welcher geschützten Seite kam die Weiterleitung? (Default: Startseite)
-  const von = useLocation().state?.von ?? '/'
+  // Von welcher geschützten Seite kam die Weiterleitung? Nur bekannte eigene
+  // Pfade zulassen – location.state ist clientseitig manipulierbar und darf
+  // nie in eine beliebige Redirect-URL münden.
+  const erlaubteZiele = ['/', '/dashboard']
+  const state = useLocation().state
+  const von = erlaubteZiele.includes(state?.von) ? state.von : '/'
 
   async function magicLinkSenden(e) {
     e.preventDefault()
@@ -20,13 +24,22 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
+        // Kein Self-Signup: Der Magic Link funktioniert nur für bereits
+        // angelegte Lehrer-Accounts. Sonst könnte sich jeder Schüler selbst
+        // registrieren und die (kostenpflichtige) Generierung nutzen.
+        shouldCreateUser: false,
         // Nach Magic-Link-Klick zurück auf die ursprünglich angeforderte Seite
         emailRedirectTo: window.location.origin + von,
       },
     })
 
     if (error) {
-      setFehler('Fehler beim Senden des Links: ' + error.message)
+      // Supabase meldet nicht freigeschaltete Adressen als "Signups not allowed for otp"
+      setFehler(
+        /signups not allowed/i.test(error.message)
+          ? 'Diese E-Mail-Adresse ist nicht freigeschaltet. Bitte wende dich an die Administration.'
+          : 'Fehler beim Senden des Links: ' + error.message
+      )
     } else {
       setGesendet(true)
     }
