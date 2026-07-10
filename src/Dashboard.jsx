@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { QRCodeCanvas } from 'qrcode.react'
 import supabase from './lib/supabaseClient'
 import { FAECHER, fachBadge } from './lib/faecher'
+import { inZwischenablage } from './lib/zwischenablage'
 import DekoFormen from './components/DekoFormen'
 import './Dashboard.css'
 
@@ -37,6 +38,23 @@ export default function Dashboard() {
   const [tab, setTab] = useState(
     window.location.hash === '#uebungen' ? 'uebungen' : 'ergebnisse'
   )
+
+  // Tab-Wechsel in den Hash spiegeln, damit Reload und kopierte URL den
+  // sichtbaren Tab zeigen; hashchange deckt Lesezeichen-Klicks ohne Remount ab
+  function wechsleTab(neuerTab) {
+    setTab(neuerTab)
+    window.history.replaceState(
+      null, '',
+      neuerTab === 'uebungen' ? '#uebungen' : window.location.pathname
+    )
+  }
+
+  useEffect(() => {
+    const aufHashChange = () =>
+      setTab(window.location.hash === '#uebungen' ? 'uebungen' : 'ergebnisse')
+    window.addEventListener('hashchange', aufHashChange)
+    return () => window.removeEventListener('hashchange', aufHashChange)
+  }, [])
 
   // --- Ergebnisse ---
   const [eintraege, setEintraege] = useState([])
@@ -104,25 +122,16 @@ export default function Dashboard() {
 
   // Schüler-Link einer HÜ in die Zwischenablage kopieren
   async function linkKopieren(hueId) {
-    const link = `${window.location.origin}/hue/${hueId}`
-    try {
-      await navigator.clipboard.writeText(link)
-    } catch {
-      // Fallback für ältere Browser
-      const eingabe = document.createElement('input')
-      eingabe.value = link
-      document.body.appendChild(eingabe)
-      eingabe.select()
-      document.execCommand('copy')
-      document.body.removeChild(eingabe)
-    }
+    await inZwischenablage(`${window.location.origin}/hue/${hueId}`)
     setKopiertId(hueId)
-    setTimeout(() => setKopiertId(null), 2000)
+    // Nur das eigene Feedback zurücksetzen – ein späterer Klick auf eine
+    // andere HÜ darf von diesem Timeout nicht gelöscht werden
+    setTimeout(() => setKopiertId((aktuell) => (aktuell === hueId ? null : aktuell)), 2000)
   }
 
   // HÜ löschen – Ergebnisse bleiben erhalten (hausuebung_id wird NULL)
   async function hueLoeschen(hue) {
-    const abgaben = eintraege.filter((e) => e.hausuebung_id === hue.id).length
+    const abgaben = abgabenProHue.get(hue.id) ?? 0
     const frage = abgaben > 0
       ? `Hausübung "${hue.fach} – ${hue.thema}" löschen?\n\nDer Schüler-Link funktioniert danach nicht mehr. Die ${abgaben} vorhandene(n) Ergebnisse bleiben im Dashboard erhalten.`
       : `Hausübung "${hue.fach} – ${hue.thema}" löschen?\n\nDer Schüler-Link funktioniert danach nicht mehr.`
@@ -130,21 +139,45 @@ export default function Dashboard() {
 
     setLoeschtId(hue.id)
     setHuesFehler(null)
-    const { error } = await supabase.from('hausuebungen').delete().eq('id', hue.id)
+    // .select() liefert die tatsächlich gelöschten Zeilen zurück – unter der
+    // Besitz-RLS ist ein Delete auf fremde HÜs sonst ein stilles No-op (0 Zeilen,
+    // kein error) und die Karte würde fälschlich aus der Liste verschwinden
+    const { data, error } = await supabase
+      .from('hausuebungen')
+      .delete()
+      .eq('id', hue.id)
+      .select('id')
     setLoeschtId(null)
 
     if (error) {
       setHuesFehler(`Löschen fehlgeschlagen: ${error.message}`)
       return
     }
+    if (!data || data.length === 0) {
+      setHuesFehler('Löschen nicht möglich: Diese Hausübung gehört einer anderen Lehrperson.')
+      return
+    }
     setHues((prev) => prev.filter((h) => h.id !== hue.id))
     if (filterHueId === hue.id) setFilterHueId(null)
   }
 
-  // Vom Abgaben-Zähler einer HÜ direkt zu den gefilterten Ergebnissen springen
+  // Vom Abgaben-Zähler einer HÜ direkt zu den gefilterten Ergebnissen springen.
+  // Andere Filter zurücksetzen, sonst kann die Schnittmenge (z. B. alter
+  // Fach-Filter + fremde HÜ) fälschlich leer sein.
   function zuErgebnissen(hueId) {
+    setFilterFach('Alle')
+    setFilterThema('')
+    setFilterKlasse('')
     setFilterHueId(hueId)
-    setTab('ergebnisse')
+    wechsleTab('ergebnisse')
+  }
+
+  // Abgaben je HÜ einmal pro Render zählen statt pro Karte zu filtern
+  const abgabenProHue = new Map()
+  for (const e of eintraege) {
+    if (e.hausuebung_id) {
+      abgabenProHue.set(e.hausuebung_id, (abgabenProHue.get(e.hausuebung_id) ?? 0) + 1)
+    }
   }
 
   // Gefilterte Einträge berechnen
@@ -176,7 +209,7 @@ export default function Dashboard() {
           role="tab"
           aria-selected={tab === 'ergebnisse'}
           className={`dashboard-tab ${tab === 'ergebnisse' ? 'aktiv' : ''}`}
-          onClick={() => setTab('ergebnisse')}
+          onClick={() => wechsleTab('ergebnisse')}
         >
           Ergebnisse
         </button>
@@ -184,7 +217,7 @@ export default function Dashboard() {
           role="tab"
           aria-selected={tab === 'uebungen'}
           className={`dashboard-tab ${tab === 'uebungen' ? 'aktiv' : ''}`}
-          onClick={() => setTab('uebungen')}
+          onClick={() => wechsleTab('uebungen')}
         >
           Hausübungen {!huesLaedt && `(${hues.length})`}
         </button>
@@ -345,7 +378,7 @@ export default function Dashboard() {
           {!huesLaedt && hues.length > 0 && (
             <div className="hue-liste">
               {hues.map((hue) => {
-                const abgaben = eintraege.filter((e) => e.hausuebung_id === hue.id).length
+                const abgaben = abgabenProHue.get(hue.id) ?? 0
                 const anzahl = aufgabenAnzahl(hue.aufgaben_json)
                 return (
                   <div key={hue.id} className="hue-karte">

@@ -574,8 +574,8 @@
   display: block;
   width: 100%;
   margin-top: var(--space-6);
-  /* Erscheint als letztes Element der Load-Staffelung */
-  animation: frageRein 0.3s ease-out 0.5s both;
+  /* Erscheint als letztes Element der Load-Staffelung (Gesamt ≤ 500ms) */
+  animation: frageRein 0.3s ease-out 0.2s both;
   padding: 18px var(--space-6);
   font-family: var(--font-display);
   font-size: var(--text-lg);

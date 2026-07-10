@@ -5,6 +5,7 @@ import AutoGrowTextarea from './components/AutoGrowTextarea'
 import VorschauEditor from './components/VorschauEditor'
 import { edgeFunctionAufrufen } from './lib/edgeFunction'
 import { FAECHER } from './lib/faecher'
+import { inZwischenablage } from './lib/zwischenablage'
 import DekoFormen from './components/DekoFormen'
 import './App.css'
 
@@ -68,22 +69,9 @@ export default function App() {
 
   // Schüler-Link in die Zwischenablage kopieren
   async function linkKopieren() {
-    const link = `${window.location.origin}/hue/${ergebnis.id}`
-    try {
-      await navigator.clipboard.writeText(link)
-      setKopiert(true)
-      setTimeout(() => setKopiert(false), 2000)
-    } catch {
-      // Fallback für ältere Browser
-      const eingabe = document.createElement('input')
-      eingabe.value = link
-      document.body.appendChild(eingabe)
-      eingabe.select()
-      document.execCommand('copy')
-      document.body.removeChild(eingabe)
-      setKopiert(true)
-      setTimeout(() => setKopiert(false), 2000)
-    }
+    await inZwischenablage(`${window.location.origin}/hue/${ergebnis.id}`)
+    setKopiert(true)
+    setTimeout(() => setKopiert(false), 2000)
   }
 
   return (

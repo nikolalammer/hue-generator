@@ -617,8 +617,8 @@
 }
 
 .fach-badge--geschichte {
-  background: var(--plum);
-  color: var(--cream);
+  background: rgba(74, 52, 68, 0.15);
+  color: var(--plum);
 }
 
 .fach-badge--biologie {
@@ -627,17 +627,17 @@
 }
 
 .fach-badge--physik {
-  background: var(--sky);
-  color: var(--ink);
+  background: rgba(210, 105, 30, 0.15);
+  color: var(--terracotta-text);
 }
 
 .fach-badge--chemie {
-  background: rgba(210, 105, 30, 0.15);
-  color: var(--terracotta);
+  background: rgba(242, 206, 114, 0.5);
+  color: #8A6D1F;
 }
 
 .fach-badge--dgb {
-  background: var(--rose);
+  background: rgba(232, 165, 165, 0.45);
   color: var(--plum);
 }
 

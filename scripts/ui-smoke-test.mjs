@@ -3,6 +3,7 @@
 // Edge ist installiert. Prüft Layout (kein horizontaler Overflow) und
 // den kompletten Löse-Flow: Klasse/Nummer → Aufgaben beantworten → Auswerten.
 import puppeteer from 'puppeteer-core'
+import { existsSync } from 'node:fs'
 
 const hueId = process.argv[2]
 if (!hueId) {
@@ -10,7 +11,15 @@ if (!hueId) {
   process.exit(1)
 }
 
-const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
+// Edge liegt je nach Windows-Installation in Program Files oder (x86)
+const EDGE = [
+  'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+  'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+].find(existsSync)
+if (!EDGE) {
+  console.error('Microsoft Edge nicht gefunden – Pfade in scripts/ui-smoke-test.mjs prüfen.')
+  process.exit(1)
+}
 const fehler = []
 const ok = (name) => console.log(`  OK   ${name}`)
 const fail = (name, detail) => { fehler.push(name); console.log(`  FAIL ${name}${detail ? ' – ' + detail : ''}`) }

@@ -1,7 +1,7 @@
 // Dekorative Memphis-Formen am Seitenrand (Design-System: max 3-4 Formen
 // Schüler, max 2 Lehrer, asymmetrisch, nie über UI-Elementen).
-// Liegt als fixe Ebene hinter dem Inhalt (z-index 0, pointer-events: none);
-// der Seiteninhalt muss darüber liegen (position: relative + z-index 1).
+// Liegt als fixe Ebene mit z-index -1 hinter dem Inhalt (pointer-events: none) –
+// die Seiten-Container brauchen dafür KEINE eigenen z-index-Anpassungen.
 import './DekoFormen.css'
 
 // Pro Screen eine eigene Formen-Kombination – bewusst nicht überall dieselbe

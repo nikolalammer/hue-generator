@@ -45,6 +45,23 @@ export default function HuePage() {
 
   const ausgewertet = auswertung !== null
 
+  // Beantwortet-Status aller Aufgaben in Anzeige-Reihenfolge –
+  // gemeinsame Basis für Fortschritts-Punkte und den Offen-Zähler
+  const beantwortet = [
+    ...ausgewaehlt.map((a) => a !== null),
+    ...lueckenAntworten.map((a) => a.trim() !== ''),
+    ...wfAntworten.map((a) => a !== null),
+    ...zuAntworten.map((a) => a !== ''),
+  ]
+  const offen = beantwortet.filter((fertig) => !fertig).length
+
+  // Load-Staffelung: 40ms Versatz, Deckel 200ms + 300ms Dauer ⇒ Gesamt-Reveal
+  // maximal ~500ms (Vorgabe Design-System, Abschnitt Motion)
+  const staffel = (index) => ({ animationDelay: `${Math.min(index * 40, 200)}ms` })
+  const ltOffset = fragen.length
+  const wfOffset = ltOffset + lueckentexte.length
+  const zuOffset = wfOffset + wahrfalsch.length
+
   // HÜ beim ersten Laden über die Edge Function holen (liefert keine Lösungen aus)
   useEffect(() => {
     async function laden() {
@@ -171,36 +188,27 @@ export default function HuePage() {
       </header>
 
       {/* Fortschritts-Punkte: ein Punkt pro Aufgabe, gefüllt sobald beantwortet */}
-      {nummerBestaetigt && !ausgewertet && (() => {
-        const beantwortet = [
-          ...ausgewaehlt.map((a) => a !== null),
-          ...lueckenAntworten.map((a) => a.trim() !== ''),
-          ...wfAntworten.map((a) => a !== null),
-          ...zuAntworten.map((a) => a !== ''),
-        ]
-        const aktiverIndex = beantwortet.indexOf(false)
-        return (
-          <div
-            className="fortschritt-punkte"
-            role="progressbar"
-            aria-valuemin={0}
-            aria-valuemax={beantwortet.length}
-            aria-valuenow={beantwortet.filter(Boolean).length}
-            aria-label="Beantwortete Aufgaben"
-          >
-            {beantwortet.map((fertig, i) => (
-              <span
-                key={i}
-                className={[
-                  'fortschritt-punkt',
-                  fertig ? 'fertig' : '',
-                  i === aktiverIndex ? 'aktiv' : '',
-                ].filter(Boolean).join(' ')}
-              />
-            ))}
-          </div>
-        )
-      })()}
+      {nummerBestaetigt && !ausgewertet && (
+        <div
+          className="fortschritt-punkte"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={beantwortet.length}
+          aria-valuenow={beantwortet.length - offen}
+          aria-label="Beantwortete Aufgaben"
+        >
+          {beantwortet.map((fertig, i) => (
+            <span
+              key={i}
+              className={[
+                'fortschritt-punkt',
+                fertig ? 'fertig' : '',
+                i === beantwortet.indexOf(false) ? 'aktiv' : '',
+              ].filter(Boolean).join(' ')}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Schritt 1: Klasse und Katalognummer eingeben */}
       {!nummerBestaetigt && (
@@ -243,12 +251,7 @@ export default function HuePage() {
       )}
 
       {/* Schritt 2: Hausübung lösen – Karten erscheinen gestaffelt (max ~500ms) */}
-      {nummerBestaetigt && (() => {
-        const staffel = (index) => ({ animationDelay: `${Math.min(index * 60, 480)}ms` })
-        const ltOffset = fragen.length
-        const wfOffset = ltOffset + lueckentexte.length
-        const zuOffset = wfOffset + wahrfalsch.length
-        return (
+      {nummerBestaetigt && (
         <section className="ergebnis">
           {/* Lesetext */}
           <div className="lesetext">
@@ -416,27 +419,18 @@ export default function HuePage() {
           )}
 
           {/* Auswerten-Button – alle Aufgabentypen müssen beantwortet sein */}
-          {(() => {
-            const offen =
-              ausgewaehlt.filter((a) => a === null).length +
-              lueckenAntworten.filter((a) => a.trim() === '').length +
-              wfAntworten.filter((a) => a === null).length +
-              zuAntworten.filter((a) => a === '').length
-            return (
-              <button
-                type="button"
-                className="auswerten-btn"
-                onClick={auswerten}
-                disabled={ausgewertet || sendet || offen > 0}
-              >
-                {sendet
-                  ? 'Wird ausgewertet...'
-                  : offen > 0
-                    ? `Noch ${offen} Aufgabe(n) offen`
-                    : 'Auswerten'}
-              </button>
-            )
-          })()}
+          <button
+            type="button"
+            className="auswerten-btn"
+            onClick={auswerten}
+            disabled={ausgewertet || sendet || offen > 0}
+          >
+            {sendet
+              ? 'Wird ausgewertet...'
+              : offen > 0
+                ? `Noch ${offen} Aufgabe(n) offen`
+                : 'Auswerten'}
+          </button>
 
           {/* Ergebnis-Zusammenfassung – Belohnung durch Sprache, nicht durch Animation */}
           {ausgewertet && (() => {
@@ -463,8 +457,7 @@ export default function HuePage() {
 
           {speichernFehler && <div className="hue-fehler">{speichernFehler}</div>}
         </section>
-        )
-      })()}
+      )}
     </div>
   )
 }
