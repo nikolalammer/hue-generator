@@ -4,6 +4,7 @@ import { QRCodeCanvas } from 'qrcode.react'
 import AutoGrowTextarea from './components/AutoGrowTextarea'
 import VorschauEditor from './components/VorschauEditor'
 import { edgeFunctionAufrufen } from './lib/edgeFunction'
+import { FAECHER } from './lib/faecher'
 import './App.css'
 
 export default function App() {
@@ -103,9 +104,9 @@ export default function App() {
             value={fach}
             onChange={(e) => setFach(e.target.value)}
           >
-            <option value="Deutsch">Deutsch</option>
-            <option value="Mathematik">Mathematik</option>
-            <option value="Englisch">Englisch</option>
+            {FAECHER.map((f) => (
+              <option key={f.name} value={f.name}>{f.name}</option>
+            ))}
           </select>
         </div>
 
