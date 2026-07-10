@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "deno test supabase/functions/generiere-hue/",
+    "test:ui": "node scripts/ui-smoke-test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.103.0",
@@ -25,6 +27,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
+    "puppeteer-core": "^25.3.0",
     "vite": "^8.0.4"
   }
 }

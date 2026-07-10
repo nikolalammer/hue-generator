@@ -52,7 +52,7 @@ export default function LoginPage() {
       <div className="login-karte">
         {/* Branding */}
         <div className="login-brand">
-          <span className="login-brand-icon" aria-hidden="true">📚</span>
+          <span className="login-brand-stern" aria-hidden="true">✱</span>
           <h1 className="login-titel">Aufgabolino</h1>
           <p className="login-untertitel">Lehrer-Login</p>
         </div>
@@ -61,7 +61,7 @@ export default function LoginPage() {
           // Bestätigungsmeldung nach dem Senden
           <div className="login-bestaetigung">
             <span className="login-bestaetigung-icon" aria-hidden="true">✓</span>
-            <p className="login-bestaetigung-text">Schau in dein Postfach!</p>
+            <p className="login-bestaetigung-text">Schau in dein Postfach.</p>
             <p className="login-bestaetigung-hinweis">
               Wir haben einen Anmeldelink an <strong>{email}</strong> geschickt.
               Klicke auf den Link in der E-Mail, um dich anzumelden.
