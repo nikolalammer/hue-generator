@@ -89,7 +89,7 @@ export default function App() {
     <div className="container">
       <header className="header">
         <div className="header-mitte">
-          <h1>Aufgabolino</h1>
+          <h1><span className="logo-stern" aria-hidden="true">✱</span>Aufgabolino</h1>
           <p>KI-Hausübungen für die Mittelschule</p>
         </div>
         <Link to="/dashboard" className="dashboard-link">Dashboard →</Link>

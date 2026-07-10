@@ -32,7 +32,10 @@ function aufgabenAnzahl(aufgabenJson) {
 
 export default function Dashboard() {
   // Aktiver Tab: Ergebnisse (Abgaben) oder Hausübungen (Verwaltung)
-  const [tab, setTab] = useState('ergebnisse')
+  // /dashboard#uebungen ist als Deep-Link direkt erreichbar
+  const [tab, setTab] = useState(
+    window.location.hash === '#uebungen' ? 'uebungen' : 'ergebnisse'
+  )
 
   // --- Ergebnisse ---
   const [eintraege, setEintraege] = useState([])

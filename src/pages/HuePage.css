@@ -1,10 +1,14 @@
 /* ============================================================
-   Schüler-HÜ-Seite – Memphis-Collage
+   Schüler-HÜ-Seite – Memphis-Collage (Stufe 2: Komponenten)
    Zielgruppe: 10–14 Jahre, mobile first, warm + verspielt
    Hintergrund kommt vom Body (Cream + Radial-Gradients)
+   Karten: Surface, r-lg, weiche Schatten – KEINE Borders
    ============================================================ */
 
 .hue-container {
+  /* width: 100% nötig – als Flex-Kind von #root würde margin:auto sonst
+     auf Inhaltsbreite kollabieren (sichtbar beim Lade-Skeleton) */
+  width: 100%;
   max-width: 640px;
   margin: 0 auto;
   padding: var(--space-6) var(--space-4) var(--space-16);
@@ -20,30 +24,72 @@
 }
 
 /* ============================================================
-   Kopfzeile – großes plakatives Heading
+   Kopfzeile – Logo, Subject-Line, Thema als Display-Headline
    ============================================================ */
 .hue-header {
   text-align: center;
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-6);
 }
 
-.hue-header h1 {
+.hue-logo {
   font-family: var(--font-display);
-  font-weight: 800;
-  font-size: clamp(48px, 13vw, 80px);
+  font-style: italic;
+  font-weight: 600;
+  font-size: var(--text-xl);
   color: var(--plum);
-  line-height: 0.95;
-  letter-spacing: -0.03em;
-  margin-bottom: var(--space-3);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-5);
 }
 
-.hue-header p {
-  font-family: var(--font-mono);
+/* Subject-Line: Fach als Kontext-Label über der Überschrift */
+.hue-subject {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
   font-size: var(--text-sm);
-  font-weight: 700;
-  color: var(--hot);
-  letter-spacing: 0.1em;
   text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--olive);
+  margin-bottom: var(--space-2);
+}
+
+.hue-thema {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 600;
+  font-size: clamp(28px, 6vw, 40px);
+  color: var(--plum);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+/* ============================================================
+   Fortschritts-Punkte – ein Punkt pro Aufgabe (statt Progressbar)
+   ============================================================ */
+.fortschritt-punkte {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: var(--space-6);
+}
+
+.fortschritt-punkt {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(43, 33, 24, 0.15);
+  transition: background var(--t-quick), transform var(--t-quick);
+}
+
+.fortschritt-punkt.fertig {
+  background: var(--olive);
+}
+
+.fortschritt-punkt.aktiv {
+  background: var(--terracotta);
+  transform: scale(1.4);
 }
 
 /* ============================================================
@@ -54,8 +100,9 @@
 }
 
 .hue-skeleton-card {
-  background: var(--paper);
-  border: 1.5px solid rgba(43, 33, 24, 0.12);
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
   padding: var(--space-6);
   margin-bottom: var(--space-4);
   display: flex;
@@ -70,8 +117,8 @@
   padding: var(--space-4) var(--space-5);
   background: var(--fehler-hell);
   border: 1.5px solid var(--fehler-border);
-  box-shadow: var(--shadow-card);
-  color: var(--hot);
+  border-radius: var(--r-md);
+  color: var(--coral);
   font-family: var(--font-body);
   font-size: var(--text-sm);
   font-weight: 500;
@@ -79,22 +126,23 @@
 }
 
 /* ============================================================
-   Klasse + Katalognummer – prominente Eingabe
+   Klasse + Katalognummer – prominente Eingabe-Karte
    ============================================================ */
 .nummern-formular {
-  background: var(--paper);
-  border: 1.5px solid rgba(43, 33, 24, 0.12);
+  background: var(--surface);
+  border-radius: var(--r-lg);
   box-shadow: var(--shadow-card);
-  padding: var(--space-6);
+  padding: var(--space-8) var(--space-6);
   margin-bottom: var(--space-6);
 }
 
 /* Zwei-Felder-Layout: Klasse + Katalognummer nebeneinander */
 .nummern-felder {
   display: flex;
-  gap: var(--space-4);
-  margin-bottom: var(--space-4);
+  gap: var(--space-5);
+  margin-bottom: var(--space-5);
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .nummern-feld {
@@ -105,50 +153,38 @@
 
 .nummern-feld label {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-style: italic;
+  font-weight: 500;
   font-size: var(--text-sm);
-  color: var(--ink);
-  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--olive);
 }
 
-/* Klasse-Input (z. B. "2a") */
-.klasse-input {
-  width: 88px;
-  padding: 12px 14px;
-  font-family: var(--font-mono);
-  font-size: var(--text-xl);
-  font-weight: 700;
-  text-align: center;
-  border: 1.5px solid rgba(43, 33, 24, 0.12);
-  background: var(--paper);
-  color: var(--ink);
-  outline: none;
-  text-transform: lowercase;
-  transition: box-shadow 60ms;
-  box-sizing: border-box;
-  border-radius: 0;
-}
-
-.klasse-input:focus {
-  border-color: var(--terracotta);
-  box-shadow: 0 0 0 3px rgba(210, 105, 30, 0.15);
-}
-
-/* Katalognummer-Input (1–40) */
+/* Klasse-Input (z. B. "2a") + Katalognummer (1–40) */
+.klasse-input,
 .katalog-input {
-  width: 100px;
   padding: 12px 14px;
   font-family: var(--font-mono);
   font-size: var(--text-xl);
-  font-weight: 700;
+  font-weight: 500;
   text-align: center;
   border: 1.5px solid rgba(43, 33, 24, 0.12);
-  background: var(--paper);
+  border-radius: var(--r-md);
+  background: var(--surface);
   color: var(--ink);
   outline: none;
-  transition: box-shadow 60ms;
+  transition: border-color var(--t-quick);
   box-sizing: border-box;
-  border-radius: 0;
+}
+
+.klasse-input {
+  width: 96px;
+  text-transform: lowercase;
+}
+
+.katalog-input {
+  width: 110px;
   /* Pfeile bei number-Input entfernen */
   -moz-appearance: textfield;
 }
@@ -158,9 +194,11 @@
   -webkit-appearance: none;
 }
 
+.klasse-input:focus,
 .katalog-input:focus {
   border-color: var(--terracotta);
-  box-shadow: 0 0 0 3px rgba(210, 105, 30, 0.15);
+  outline: 3px solid rgba(210, 105, 30, 0.15);
+  outline-offset: 0;
 }
 
 /* Fehlermeldung bei ungültiger Eingabe */
@@ -168,35 +206,36 @@
   font-family: var(--font-body);
   font-size: var(--text-sm);
   font-weight: 600;
-  color: var(--hot);
+  color: var(--coral);
+  text-align: center;
   margin: 0 0 var(--space-3);
 }
 
-/* Weiter-Button – volle Breite, Primary-Style */
+/* Weiter-Button – Primary (Plum → Terracotta) */
 .nummern-weiter-btn {
   display: block;
   width: 100%;
-  padding: 16px var(--space-6);
+  padding: 18px var(--space-6);
   font-family: var(--font-display);
   font-size: var(--text-lg);
-  font-weight: 800;
-  background: var(--ink);
-  color: var(--paper);
-  border: 1.5px solid rgba(43, 33, 24, 0.12);
+  font-weight: 500;
+  background: var(--plum);
+  color: var(--cream);
+  border: none;
+  border-radius: var(--r-md);
   cursor: pointer;
   min-height: 56px;
-  box-shadow: var(--shadow-card);
-  transition: transform 60ms ease-out, box-shadow 60ms ease-out;
+  transition: background var(--t-quick), transform var(--t-quick);
   letter-spacing: 0.01em;
 }
 
 .nummern-weiter-btn:hover {
   background: var(--terracotta);
+  transform: translateY(-2px);
 }
 
 .nummern-weiter-btn:active {
-  transform: translate(4px, 4px);
-  box-shadow: none;
+  transform: translateY(0);
 }
 
 /* ============================================================
@@ -206,56 +245,48 @@
   margin-top: var(--space-6);
 }
 
-.ergebnis h2 {
-  font-family: var(--font-display);
-  font-size: var(--text-2xl);
-  font-weight: 800;
-  color: var(--ink);
-  margin: 0 0 var(--space-5);
-}
-
-/* Lesetext – Cobalt-Rahmen, Magenta-Shadow */
+/* Lesetext-Karte */
 .lesetext {
-  background: var(--paper);
-  border: 1.5px solid rgba(43, 33, 24, 0.12);
+  background: var(--surface);
+  border-radius: var(--r-lg);
   box-shadow: var(--shadow-card);
-  padding: var(--space-5);
+  padding: var(--space-6);
   margin-bottom: var(--space-6);
 }
 
 .lesetext strong {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
+  display: block;
   margin-bottom: var(--space-3);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--hot);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: var(--text-sm);
+  color: var(--olive);
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.15em;
 }
 
 .lesetext p {
   font-family: var(--font-body);
   font-size: var(--text-base);
-  color: var(--ink-soft);
+  color: var(--ink);
   line-height: 1.7;
 }
 
-/* Abschnitt-Titel (Fragen / Lückentexte) */
+/* Abschnitt-Titel (Fragen / Lückentexte / Wahr-Falsch / Zuordnung) */
 .fragen-titel {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: var(--text-sm);
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--hot);
+  letter-spacing: 0.15em;
+  color: var(--olive);
   margin-bottom: var(--space-4);
 }
 
 /* ============================================================
-   Frage-Block
+   Frage-Karte
    ============================================================ */
 @keyframes frageRein {
   from { opacity: 0; transform: translateY(8px); }
@@ -263,17 +294,17 @@
 }
 
 .frage {
-  background: var(--paper);
-  border: 1.5px solid rgba(43, 33, 24, 0.12);
+  background: var(--surface);
+  border-radius: var(--r-lg);
   box-shadow: var(--shadow-card);
-  padding: var(--space-5);
+  padding: var(--space-6);
   margin-bottom: var(--space-5);
   animation: frageRein 0.3s ease-out both;
 }
 
 .fragetext {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 600;
   font-size: clamp(18px, 3.5vw, 22px);
   color: var(--ink);
   margin: 0 0 var(--space-4);
@@ -282,7 +313,7 @@
 }
 
 /* ============================================================
-   Multiple-Choice – große klickbare Karten
+   Option-Buttons (MC + Wahr/Falsch) – laut Design-System
    ============================================================ */
 .antwortliste {
   list-style: none;
@@ -298,8 +329,9 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-4) var(--space-5);
-  border: 1.5px solid rgba(43, 33, 24, 0.12);
-  background: var(--paper);
+  background: var(--surface);
+  border: 1.5px solid rgba(43, 33, 24, 0.08);
+  border-radius: var(--r-md);
   cursor: pointer;
   font-family: var(--font-body);
   font-size: var(--text-base);
@@ -307,83 +339,88 @@
   color: var(--ink);
   min-height: 52px;
   line-height: 1.4;
-  transition: transform 60ms ease-out, box-shadow 60ms ease-out;
+  transition: border-color var(--t-quick), background var(--t-quick), transform var(--t-quick);
+}
+
+.antwort-text {
+  flex: 1;
+  min-width: 0;
 }
 
 .antwort-option:hover:not(.korrekt):not(.falsch):not(.vorschau) {
-  background: rgba(43, 33, 24, 0.04);
-  box-shadow: var(--shadow-card);
+  border-color: var(--terracotta);
+  transform: translateX(4px);
 }
 
-.antwort-option:active:not(.korrekt):not(.falsch):not(.vorschau) {
-  transform: translate(3px, 3px);
-  box-shadow: none;
-}
-
-/* Ausgewählt vor Auswertung */
+/* Ausgewählt vor Auswertung – Olive-Rahmen, leicht getönt */
 .antwort-option.gewaehlt {
-  background: var(--ink);
-  color: var(--paper);
-  box-shadow: var(--shadow-card);
+  border-color: var(--olive);
+  background: #F9F3E5;
 }
 
 /* Richtige Antwort nach Auswertung */
 .antwort-option.korrekt {
-  background: var(--lime);
-  color: var(--ink);
-  border-color: var(--ink);
-  box-shadow: var(--shadow-card);
+  border-color: var(--olive);
+  background: var(--erfolg-hell);
   cursor: default;
 }
 
 /* Falsch gewählt nach Auswertung */
 .antwort-option.falsch {
-  background: var(--hot);
-  color: var(--paper);
-  border-color: var(--hot);
+  border-color: var(--coral);
+  background: var(--fehler-hell);
   cursor: default;
 }
 
 /* Vorschau in App.jsx (nicht klickbar) */
 .antwort-option.vorschau {
   cursor: default;
-  border-color: rgba(43, 33, 24, 0.25);
-  background: rgba(43, 33, 24, 0.03);
 }
 
-/* Buchstaben-Badge */
+/* Marker links: Buchstabe A/B/C/D bzw. W/F im Kreis */
 .buchstabe {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
-  border: 1.5px solid rgba(43, 33, 24, 0.12);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--ink);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--cream);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--plum);
   flex-shrink: 0;
-  background: var(--paper);
+  transition: background var(--t-quick), color var(--t-quick);
 }
 
 .antwort-option.gewaehlt .buchstabe {
-  background: var(--hot);
-  color: var(--paper);
-  border-color: var(--hot);
+  background: var(--olive);
+  color: var(--cream);
 }
 
 .antwort-option.korrekt .buchstabe {
-  background: var(--ink);
-  color: var(--paper);
-  border-color: var(--ink);
+  background: var(--olive);
+  color: var(--cream);
 }
 
 .antwort-option.falsch .buchstabe {
-  background: var(--paper);
-  color: var(--hot);
-  border-color: var(--paper);
+  background: var(--coral);
+  color: var(--cream);
 }
+
+/* Checkmark / X rechts nach der Auswertung – ohne Kreis */
+.option-marker {
+  margin-left: auto;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.option-marker.korrekt { color: var(--olive); }
+.option-marker.falsch  { color: var(--coral); }
 
 /* ============================================================
    Lückentext – inline im Satzfluss
@@ -404,21 +441,21 @@
   display: inline-block;
   padding: 2px 8px;
   border: none;
-  border-bottom: 3px solid var(--ink);
+  border-bottom: 2px solid rgba(43, 33, 24, 0.3);
   font-family: var(--font-mono);
   font-size: var(--text-base);
-  font-weight: 700;
+  font-weight: 500;
   color: var(--ink);
   background: transparent;
   margin: 0 var(--space-1);
   outline: none;
-  transition: border-color 60ms;
+  transition: border-color var(--t-quick);
   min-width: 80px;
   border-radius: 0;
 }
 
 .luecken-input:focus {
-  border-bottom-color: var(--hot);
+  border-bottom-color: var(--terracotta);
 }
 
 .luecken-input::placeholder {
@@ -428,13 +465,13 @@
 }
 
 .luecken-input.korrekt {
-  border-bottom-color: var(--erfolg);
-  color: var(--erfolg);
+  border-bottom-color: var(--olive);
+  color: var(--olive);
 }
 
 .luecken-input.falsch {
-  border-bottom-color: var(--hot);
-  color: var(--hot);
+  border-bottom-color: var(--coral);
+  color: var(--coral);
 }
 
 .luecken-input:disabled {
@@ -443,14 +480,15 @@
 
 .luecken-korrektur {
   display: inline-block;
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
+  font-style: italic;
   font-size: var(--text-sm);
-  font-weight: 700;
+  font-weight: 500;
   margin-left: var(--space-2);
 }
 
-.luecken-korrektur.korrekt { color: var(--erfolg); }
-.luecken-korrektur.falsch  { color: var(--hot); }
+.luecken-korrektur.korrekt { color: var(--olive); }
+.luecken-korrektur.falsch  { color: var(--coral); }
 
 /* ============================================================
    Zuordnung – Begriff links, Partner-Auswahl rechts
@@ -478,29 +516,34 @@
 .zuordnung-select {
   flex: 1;
   min-width: 160px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   font-family: var(--font-body);
   font-size: var(--text-base);
+  font-weight: 500;
   color: var(--ink);
   border: 1.5px solid rgba(43, 33, 24, 0.12);
-  background: var(--paper);
-  border-radius: 0;
+  border-radius: var(--r-md);
+  background: var(--surface);
   cursor: pointer;
+  transition: border-color var(--t-quick);
 }
 
 .zuordnung-select:focus {
-  outline: none;
-  border-color: var(--hot);
+  outline: 3px solid rgba(210, 105, 30, 0.15);
+  outline-offset: 0;
+  border-color: var(--terracotta);
 }
 
 .zuordnung-select.korrekt {
-  border-color: var(--erfolg);
-  color: var(--erfolg);
+  border-color: var(--olive);
+  background: var(--erfolg-hell);
+  color: var(--ink);
 }
 
 .zuordnung-select.falsch {
-  border-color: var(--hot);
-  color: var(--hot);
+  border-color: var(--coral);
+  background: var(--fehler-hell);
+  color: var(--ink);
 }
 
 .zuordnung-select:disabled {
@@ -516,7 +559,7 @@
 }
 
 /* ============================================================
-   Auswerten-Button – groß, einladend, Schüler-freundlich
+   Auswerten-Button – Primary, groß, einladend
    ============================================================ */
 .auswerten-btn {
   display: block;
@@ -525,175 +568,101 @@
   padding: 18px var(--space-6);
   font-family: var(--font-display);
   font-size: var(--text-lg);
-  font-weight: 800;
-  background: var(--ink);
-  color: var(--paper);
-  border: 1.5px solid rgba(43, 33, 24, 0.12);
+  font-weight: 500;
+  background: var(--plum);
+  color: var(--cream);
+  border: none;
+  border-radius: var(--r-md);
   cursor: pointer;
   min-height: 60px;
-  box-shadow: var(--shadow-card);
-  transition: transform 60ms ease-out, box-shadow 60ms ease-out;
+  transition: background var(--t-quick), transform var(--t-quick);
   letter-spacing: 0.01em;
 }
 
 .auswerten-btn:hover:not(:disabled) {
   background: var(--terracotta);
+  transform: translateY(-2px);
 }
 
 .auswerten-btn:active:not(:disabled) {
-  transform: translate(4px, 4px);
-  box-shadow: none;
+  transform: translateY(0);
 }
 
 .auswerten-btn:disabled {
-  opacity: 0.45;
+  opacity: 0.5;
   cursor: not-allowed;
-  box-shadow: none;
 }
 
 /* ============================================================
-   Ergebnis-Zusammenfassung – Stempel-Belohnungs-Moment
+   Ergebnis-Zusammenfassung – Belohnung durch Sprache
    ============================================================ */
-
-@keyframes erfolgBounce {
-  0%   { transform: scale(0.3); opacity: 0; }
-  55%  { transform: scale(1.1); }
-  75%  { transform: scale(0.95); }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-@keyframes stempelRein {
-  from { opacity: 0; transform: rotate(-8deg) scale(2.2); }
-  to   { opacity: 1; transform: rotate(-8deg) scale(1); }
-}
-
-@keyframes slideHochEin {
-  from { transform: translateY(10px); opacity: 0; }
-  to   { transform: translateY(0); opacity: 1; }
-}
-
-@keyframes konfettiLinks {
-  0%   { transform: translateY(0) translateX(0); opacity: 1; }
-  100% { transform: translateY(-80px) translateX(-40px); opacity: 0; }
-}
-
-@keyframes konfettiRechts {
-  0%   { transform: translateY(0) translateX(0); opacity: 1; }
-  100% { transform: translateY(-80px) translateX(40px); opacity: 0; }
+@keyframes ergebnisRein {
+  0%   { opacity: 0; transform: translateY(8px) scale(1); }
+  60%  { opacity: 1; transform: translateY(0) scale(1.03); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .ergebnis-zusammenfassung-wrapper {
   margin-top: var(--space-6);
+  padding: var(--space-8) var(--space-6);
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-4);
-  position: relative;
-  overflow: visible;
-}
-
-/* Konfetti links – neue Palette: Hot, Sun, Lime, Ink */
-.ergebnis-zusammenfassung-wrapper.perfekt::before {
-  content: '';
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  background: var(--hot);
-  top: 28px;
-  left: calc(50% - 80px);
-  box-shadow:
-    -30px 18px 0 4px var(--sun),
-    -14px -22px 0 3px var(--lime),
-    -55px -10px 0 4px var(--hot),
-    -40px 40px 0 3px var(--ink-soft);
-  animation: konfettiLinks 1.0s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards;
-  opacity: 0;
-  border-radius: 2px;
-}
-
-/* Konfetti rechts */
-.ergebnis-zusammenfassung-wrapper.perfekt::after {
-  content: '';
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  background: var(--sun);
-  top: 28px;
-  right: calc(50% - 80px);
-  box-shadow:
-    30px 14px 0 4px var(--lime),
-    14px -26px 0 3px var(--hot),
-    55px -12px 0 4px var(--sun),
-    40px 36px 0 3px var(--ink);
-  animation: konfettiRechts 1.0s cubic-bezier(0.22, 1, 0.36, 1) 0.4s forwards;
-  opacity: 0;
-  border-radius: 0;
-}
-
-/* Prozent-Badge – normal: großes JetBrains-Mono-Number */
-.ergebnis-prozent {
-  font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: 80px;
-  color: var(--hot);
-  line-height: 1;
-  animation: erfolgBounce 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-
-/* Perfekt: Stempel-Effekt – rotiert rein, Gelb-Hintergrund */
-.ergebnis-prozent.perfekt {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 52px;
-  letter-spacing: 0.02em;
-  color: var(--ink);
-  background: var(--sun);
-  border: 1.5px solid rgba(43, 33, 24, 0.12);
-  padding: 14px 32px;
-  /* Wichtig: transform im animation-Endwert, nicht direkt gesetzt */
-  outline: none;
-  outline-offset: 3px;
-  animation: stempelRein 0.35s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-}
-
-/* Text unter dem Badge */
-.ergebnis-zusammenfassung {
-  width: 100%;
-  padding: var(--space-4) var(--space-5);
-  background: var(--paper);
-  border: 1.5px solid rgba(43, 33, 24, 0.12);
-  box-shadow: var(--shadow-card);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: var(--text-lg);
+  gap: var(--space-2);
   text-align: center;
-  color: var(--ink);
-  animation: slideHochEin 0.4s ease-out 0.4s both;
+  animation: ergebnisRein 0.4s cubic-bezier(.4, 0, .2, 1) both;
 }
 
-.ergebnis-zusammenfassung.perfekt {
-  background: var(--sun);
-  border-color: var(--ink);
-  color: var(--ink);
+/* Prozent als Accent-Number: Fraunces Italic, groß und leicht */
+.ergebnis-prozent {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 300;
+  font-size: var(--text-5xl);
+  letter-spacing: -0.03em;
+  color: var(--plum);
+  line-height: 1;
+}
+
+.ergebnis-zusammenfassung-wrapper.perfekt .ergebnis-prozent {
+  color: var(--olive);
+}
+
+/* Wertungssatz – Fraunces Italic, Farbe je nach Ausgang */
+.ergebnis-wertung {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: var(--text-lg);
+}
+
+.ergebnis-wertung.gut          { color: var(--olive); }
+.ergebnis-wertung.ausbaufaehig { color: var(--coral); }
+
+.ergebnis-detail {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--ink-soft);
 }
 
 /* ============================================================
    prefers-reduced-motion
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {
-  .ergebnis-prozent,
-  .ergebnis-zusammenfassung,
   .frage,
-  .nummern-weiter-btn,
-  .auswerten-btn {
+  .ergebnis-zusammenfassung-wrapper {
     animation: none;
     opacity: 1;
     transform: none;
   }
 
-  .ergebnis-zusammenfassung-wrapper.perfekt::before,
-  .ergebnis-zusammenfassung-wrapper.perfekt::after {
-    animation: none;
-    display: none;
+  .antwort-option,
+  .fortschritt-punkt,
+  .nummern-weiter-btn,
+  .auswerten-btn {
+    transition: none;
   }
 }

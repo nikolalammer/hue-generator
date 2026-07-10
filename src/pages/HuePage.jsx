@@ -163,9 +163,42 @@ export default function HuePage() {
   return (
     <div className="hue-container">
       <header className="hue-header">
-        <h1>Aufgabolino</h1>
-        <p>{fach} – {thema}</p>
+        <p className="hue-logo"><span className="logo-stern" aria-hidden="true">✱</span>Aufgabolino</p>
+        <p className="hue-subject">{fach}</p>
+        <h1 className="hue-thema">{thema}</h1>
       </header>
+
+      {/* Fortschritts-Punkte: ein Punkt pro Aufgabe, gefüllt sobald beantwortet */}
+      {nummerBestaetigt && !ausgewertet && (() => {
+        const beantwortet = [
+          ...ausgewaehlt.map((a) => a !== null),
+          ...lueckenAntworten.map((a) => a.trim() !== ''),
+          ...wfAntworten.map((a) => a !== null),
+          ...zuAntworten.map((a) => a !== ''),
+        ]
+        const aktiverIndex = beantwortet.indexOf(false)
+        return (
+          <div
+            className="fortschritt-punkte"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={beantwortet.length}
+            aria-valuenow={beantwortet.filter(Boolean).length}
+            aria-label="Beantwortete Aufgaben"
+          >
+            {beantwortet.map((fertig, i) => (
+              <span
+                key={i}
+                className={[
+                  'fortschritt-punkt',
+                  fertig ? 'fertig' : '',
+                  i === aktiverIndex ? 'aktiv' : '',
+                ].filter(Boolean).join(' ')}
+              />
+            ))}
+          </div>
+        )
+      })()}
 
       {/* Schritt 1: Klasse und Katalognummer eingeben */}
       {!nummerBestaetigt && (
@@ -243,7 +276,9 @@ export default function HuePage() {
                       }}
                     >
                       <span className="buchstabe">{String.fromCharCode(65 + j)}</span>
-                      {antwort}
+                      <span className="antwort-text">{antwort}</span>
+                      {korrekt && <span className="option-marker korrekt" aria-hidden="true">✓</span>}
+                      {falsch && <span className="option-marker falsch" aria-hidden="true">✗</span>}
                     </li>
                   )
                 })}
@@ -320,7 +355,9 @@ export default function HuePage() {
                           }}
                         >
                           <span className="buchstabe">{wert ? 'W' : 'F'}</span>
-                          {wert ? 'Wahr' : 'Falsch'}
+                          <span className="antwort-text">{wert ? 'Wahr' : 'Falsch'}</span>
+                          {korrekt && <span className="option-marker korrekt" aria-hidden="true">✓</span>}
+                          {falsch && <span className="option-marker falsch" aria-hidden="true">✗</span>}
                         </li>
                       )
                     })}
@@ -394,20 +431,25 @@ export default function HuePage() {
             )
           })()}
 
-          {/* Ergebnis-Zusammenfassung – Prozent-Badge + Originaltext */}
+          {/* Ergebnis-Zusammenfassung – Belohnung durch Sprache, nicht durch Animation */}
           {ausgewertet && (() => {
             const { richtig, gesamt, prozent } = auswertung
             const istPerfekt = richtig === gesamt
             return (
               <div className={`ergebnis-zusammenfassung-wrapper ${istPerfekt ? 'perfekt' : ''}`}>
-                <div className={`ergebnis-prozent ${istPerfekt ? 'perfekt' : ''}`}>
-                  {prozent} %
-                </div>
-                <div className={`ergebnis-zusammenfassung ${istPerfekt ? 'perfekt' : ''}`}>
+                <div className="ergebnis-prozent">{prozent} %</div>
+                <p className={`ergebnis-wertung ${istPerfekt || prozent >= 50 ? 'gut' : 'ausbaufaehig'}`}>
                   {istPerfekt
-                    ? `Perfekt! Alle ${gesamt} Fragen richtig!`
-                    : `${richtig} von ${gesamt} Fragen richtig`}
-                </div>
+                    ? 'Genau richtig. Alles gelöst.'
+                    : prozent >= 75
+                      ? 'Gute Arbeit.'
+                      : prozent >= 50
+                        ? 'Schon vieles richtig.'
+                        : 'Noch nicht ganz.'}
+                </p>
+                <p className="ergebnis-detail">
+                  {richtig} von {gesamt} Aufgaben richtig
+                </p>
               </div>
             )
           })()}
