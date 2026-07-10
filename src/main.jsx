@@ -12,8 +12,16 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
-        {/* Schüler-App – öffentlich zugänglich */}
-        <Route path="/" element={<App />} />
+        {/* Lehrer-Startseite (HÜ generieren) – login-pflichtig, weil die
+            Generierung Anthropic-Guthaben kostet */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <App />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Anmeldeseite für Lehrpersonen */}
         <Route path="/login" element={<LoginPage />} />

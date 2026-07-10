@@ -1,18 +1,27 @@
 // Gemeinsamer Aufruf der generiere-hue Edge Function (alle Modi).
-// Kapselt URL, Anon-Key-Header und robustes Fehler-Parsing an einer Stelle.
+// Kapselt URL, Auth-Header und robustes Fehler-Parsing an einer Stelle.
+import supabase from './supabaseClient'
+
 const FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generiere-hue`
 
-const FUNCTION_HEADERS = {
-  'Content-Type': 'application/json',
-  'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-  'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+// Eingeloggte Lehrpersonen schicken ihr User-Token mit (die Generierung ist
+// serverseitig login-pflichtig). Schüler ohne Session nutzen den Anon-Key –
+// der reicht für die Modi "hole" und "auswerten".
+async function authToken() {
+  const { data: { session } } = await supabase.auth.getSession()
+  return session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY
 }
 
 // Wirft bei Fehlern eine Error mit deutscher Meldung (Server-Meldung wenn vorhanden)
 export async function edgeFunctionAufrufen(body, fallbackFehler = 'Anfrage fehlgeschlagen.') {
+  const token = await authToken()
   const res = await fetch(FUNCTION_URL, {
     method: 'POST',
-    headers: FUNCTION_HEADERS,
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${token}`,
+    },
     body: JSON.stringify(body),
   })
 

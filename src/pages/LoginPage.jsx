@@ -1,5 +1,6 @@
 // Anmeldeseite für Lehrpersonen – sendet einen Magic Link per E-Mail
 import { useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import supabase from '../lib/supabaseClient'
 import './LoginPage.css'
 
@@ -8,6 +9,8 @@ export default function LoginPage() {
   const [gesendet, setGesendet] = useState(false)
   const [laedt, setLaedt] = useState(false)
   const [fehler, setFehler] = useState(null)
+  // Von welcher geschützten Seite kam die Weiterleitung? (Default: Startseite)
+  const von = useLocation().state?.von ?? '/'
 
   async function magicLinkSenden(e) {
     e.preventDefault()
@@ -17,8 +20,8 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        // Nach Magic-Link-Klick direkt auf das Dashboard weiterleiten
-        emailRedirectTo: window.location.origin + '/dashboard',
+        // Nach Magic-Link-Klick zurück auf die ursprünglich angeforderte Seite
+        emailRedirectTo: window.location.origin + von,
       },
     })
 
