@@ -5,6 +5,7 @@ import AutoGrowTextarea from './components/AutoGrowTextarea'
 import VorschauEditor from './components/VorschauEditor'
 import { edgeFunctionAufrufen } from './lib/edgeFunction'
 import { FAECHER } from './lib/faecher'
+import DekoFormen from './components/DekoFormen'
 import './App.css'
 
 export default function App() {
@@ -87,6 +88,7 @@ export default function App() {
 
   return (
     <div className="container">
+      <DekoFormen variante="lehrer" />
       <header className="header">
         <div className="header-mitte">
           <h1><span className="logo-stern" aria-hidden="true">✱</span>Aufgabolino</h1>

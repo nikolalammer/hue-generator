@@ -150,6 +150,22 @@
   gap: var(--space-3);
 }
 
+/* Karten faden gestaffelt ein (je 40ms Versatz, wie die Tabellenzeilen) */
+.hue-karte {
+  opacity: 0;
+  animation: row-rein 0.25s ease-out forwards;
+}
+
+.hue-liste .hue-karte:nth-child(1)  { animation-delay: 0.04s; }
+.hue-liste .hue-karte:nth-child(2)  { animation-delay: 0.08s; }
+.hue-liste .hue-karte:nth-child(3)  { animation-delay: 0.12s; }
+.hue-liste .hue-karte:nth-child(4)  { animation-delay: 0.16s; }
+.hue-liste .hue-karte:nth-child(5)  { animation-delay: 0.20s; }
+.hue-liste .hue-karte:nth-child(6)  { animation-delay: 0.24s; }
+.hue-liste .hue-karte:nth-child(7)  { animation-delay: 0.28s; }
+.hue-liste .hue-karte:nth-child(8)  { animation-delay: 0.32s; }
+.hue-liste .hue-karte:nth-child(n+9) { animation-delay: 0.36s; }
+
 .hue-karte {
   display: flex;
   align-items: center;
@@ -204,7 +220,7 @@
   font-family: var(--font-body);
   font-size: var(--text-sm);
   font-weight: 600;
-  color: var(--terracotta);
+  color: var(--terracotta-text);
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 2px;
@@ -400,6 +416,35 @@
   background: var(--surface);
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-card);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Leerer Zustand: Illustration nur durch dekorative Formen */
+.dashboard-leer::before {
+  content: '';
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: var(--butter);
+  opacity: 0.35;
+  top: -30px;
+  left: 8%;
+  pointer-events: none;
+}
+
+.dashboard-leer::after {
+  content: '';
+  position: absolute;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 3px solid var(--rose);
+  opacity: 0.5;
+  bottom: -14px;
+  right: 12%;
+  pointer-events: none;
 }
 
 .dashboard-leer-titel {
@@ -636,7 +681,7 @@
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   cursor: pointer;
-  color: var(--terracotta);
+  color: var(--terracotta-text);
 }
 
 .hue-id-zelle:hover {

@@ -1,0 +1,40 @@
+/* Dekorative Memphis-Formen – fixe Ebene hinter dem Seiteninhalt */
+.deko-ebene {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  /* negativ: hinter dem Seiteninhalt, aber vor dem Body-Hintergrund */
+  z-index: -1;
+}
+
+.deko-form {
+  position: absolute;
+  display: block;
+}
+
+.deko-kreis {
+  border-radius: 50%;
+}
+
+.deko-kreis-offen {
+  border-radius: 50%;
+  border: 3px solid currentColor;
+  background: transparent !important;
+}
+
+.deko-quadrat {
+  border-radius: 12px;
+}
+
+.deko-raute {
+  transform: rotate(45deg);
+  border-radius: 6px;
+}
+
+/* Farben – Formen nutzen background, offene Kreise currentColor */
+.deko-butter     { background: var(--butter);     color: var(--butter); }
+.deko-terracotta { background: var(--terracotta); color: var(--terracotta); }
+.deko-olive      { background: var(--olive);      color: var(--olive); }
+.deko-rose       { background: var(--rose);       color: var(--rose); }
+.deko-sky        { background: var(--sky);        color: var(--sky); }

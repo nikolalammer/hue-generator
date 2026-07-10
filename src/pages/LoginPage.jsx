@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import supabase from '../lib/supabaseClient'
+import DekoFormen from '../components/DekoFormen'
 import './LoginPage.css'
 
 export default function LoginPage() {
@@ -49,6 +50,7 @@ export default function LoginPage() {
 
   return (
     <div className="login-container">
+      <DekoFormen variante="login" />
       <div className="login-karte">
         {/* Branding */}
         <div className="login-brand">

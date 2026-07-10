@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { edgeFunctionAufrufen } from '../lib/edgeFunction'
+import DekoFormen from '../components/DekoFormen'
 import './HuePage.css'
 
 export default function HuePage() {
@@ -162,6 +163,7 @@ export default function HuePage() {
 
   return (
     <div className="hue-container">
+      <DekoFormen variante="schueler" />
       <header className="hue-header">
         <p className="hue-logo"><span className="logo-stern" aria-hidden="true">✱</span>Aufgabolino</p>
         <p className="hue-subject">{fach}</p>
@@ -240,8 +242,13 @@ export default function HuePage() {
         </form>
       )}
 
-      {/* Schritt 2: Hausübung lösen */}
-      {nummerBestaetigt && (
+      {/* Schritt 2: Hausübung lösen – Karten erscheinen gestaffelt (max ~500ms) */}
+      {nummerBestaetigt && (() => {
+        const staffel = (index) => ({ animationDelay: `${Math.min(index * 60, 480)}ms` })
+        const ltOffset = fragen.length
+        const wfOffset = ltOffset + lueckentexte.length
+        const zuOffset = wfOffset + wahrfalsch.length
+        return (
         <section className="ergebnis">
           {/* Lesetext */}
           <div className="lesetext">
@@ -252,7 +259,7 @@ export default function HuePage() {
           {/* Fragen (klickbar) */}
           {fragen.length > 0 && <p className="fragen-titel">Fragen</p>}
           {fragen.map((frage, i) => (
-            <div key={i} className="frage">
+            <div key={i} className="frage" style={staffel(i)}>
               <p className="fragetext">{i + 1}. {frage.frage}</p>
               <ul className="antwortliste">
                 {frage.antworten.map((antwort, j) => {
@@ -293,7 +300,7 @@ export default function HuePage() {
               {lueckentexte.map((lt, i) => {
                 const teile = lt.satz.split('___')
                 return (
-                  <div key={i} className="frage lueckentext-frage">
+                  <div key={i} className="frage lueckentext-frage" style={staffel(ltOffset + i)}>
                     <span className="fragetext">
                       {teile[0]}
                       <input
@@ -331,7 +338,7 @@ export default function HuePage() {
             <>
               <p className="fragen-titel">Wahr oder falsch?</p>
               {wahrfalsch.map((wf, i) => (
-                <div key={i} className="frage">
+                <div key={i} className="frage" style={staffel(wfOffset + i)}>
                   <p className="fragetext">{i + 1}. {wf.aussage}</p>
                   <ul className="antwortliste wf-antwortliste">
                     {[true, false].map((wert) => {
@@ -371,7 +378,7 @@ export default function HuePage() {
           {zuordnung && zuordnung.begriffe.length > 0 && (
             <>
               <p className="fragen-titel">Zuordnung – was passt zusammen?</p>
-              <div className="frage zuordnung-block">
+              <div className="frage zuordnung-block" style={staffel(zuOffset)}>
                 {zuordnung.begriffe.map((begriff, i) => {
                   const korrekt = ausgewertet && auswertung.zuKorrekt?.[i] === true
                   return (
@@ -456,7 +463,8 @@ export default function HuePage() {
 
           {speichernFehler && <div className="hue-fehler">{speichernFehler}</div>}
         </section>
-      )}
+        )
+      })()}
     </div>
   )
 }

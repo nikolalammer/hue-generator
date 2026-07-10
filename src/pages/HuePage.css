@@ -29,6 +29,7 @@
 .hue-header {
   text-align: center;
   margin-bottom: var(--space-6);
+  animation: frageRein 0.4s ease-out both;
 }
 
 .hue-logo {
@@ -358,11 +359,19 @@
   background: #F9F3E5;
 }
 
+/* Feedback-Puls: sanftes Scale beim Enthüllen der richtigen Antwort */
+@keyframes korrektPuls {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
 /* Richtige Antwort nach Auswertung */
 .antwort-option.korrekt {
   border-color: var(--olive);
   background: var(--erfolg-hell);
   cursor: default;
+  animation: korrektPuls 400ms cubic-bezier(.4, 0, .2, 1);
 }
 
 /* Falsch gewählt nach Auswertung */
@@ -565,6 +574,8 @@
   display: block;
   width: 100%;
   margin-top: var(--space-6);
+  /* Erscheint als letztes Element der Load-Staffelung */
+  animation: frageRein 0.3s ease-out 0.5s both;
   padding: 18px var(--space-6);
   font-family: var(--font-display);
   font-size: var(--text-lg);
