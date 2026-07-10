@@ -1,64 +1,61 @@
-# HÜ-Generator – Projektkontext für Claude Code
+# Aufgabolino – Projektkontext für Claude Code
 
-## Was ist dieses Projekt?
-KI-gestützte Hausübungsplattform für österreichische Mittelschulen.
-Lehrpersonen geben Fach + Thema ein, KI generiert automatisch auswertbare
-Hausübungen (Multiple Choice, Lückentext). Schüler lösen sie via QR-Code/Link,
-Ergebnisse werden automatisch ausgewertet und in einer Lehrerübersicht dargestellt.
+## Was ist das Projekt?
+KI-gestützte Hausübungsplattform für österreichische Mittelschulen (MS Eberschwang,
+5.–8. Schulstufe). Lehrer generieren Hausübungen per Anthropic-KI, Schüler lösen sie
+via Link/QR-Code, Auswertung serverseitig, Ergebnisse im Lehrer-Dashboard.
+Zielgruppe später auch Kollegen der Region (ARGE DGB Innviertel) – robust,
+verständlich, DSGVO-konform.
 
-## Tech Stack
-- Frontend: React + Vite
-- Datenbank: Supabase (phyxperjnduzbllgfrdb)
-- KI: Anthropic API (Claude) – API-Key nur serverseitig!
-- Hosting: Vercel
+## Stack
+- Frontend: React + Vite, plain CSS (kein Framework), Deutsch inkl. Code-Kommentaren
+- Supabase `phyxperjnduzbllgfrdb` (Postgres + Auth + Edge Function `generiere-hue`)
+- Anthropic API (claude-haiku) nur in der Edge Function, Key in Supabase Secrets
+- Hosting: Vercel (Auto-Deploy von `main` auf GitHub)
+- Design-System: Memphis-Collage – verbindliche Spec in `docs/design/AUFGABOLINO-DESIGN-SYSTEM.md`
 
-## Wichtige Regeln
-- Anthropic API-Key NIEMALS ins Frontend – nur in Supabase Edge Functions
-- Kommentare auf Deutsch
-- Komponenten klein halten, eine Aufgabe pro Datei
-- Kein CSS-Framework – einfaches CSS reicht für MVP
+## Architektur-Grundsätze (nicht aufweichen)
+- **Lösungen bleiben serverseitig:** Schüler-Flow läuft komplett über die Edge Function
+  (Modus `hole` liefert Aufgaben ohne Lösungen, `auswerten` bewertet serverseitig).
+  Kein direkter `hausuebungen`-Read aus dem Schüler-Kontext.
+- **Generierung ist login-pflichtig** (User-JWT-Check in der Edge Function) – der
+  Anon-Key darf keine Anthropic-Kosten auslösen. Self-Signup ist deaktiviert
+  (Supabase `disable_signup` + `shouldCreateUser: false`); neue Lehrer-Accounts
+  werden im Supabase-Dashboard eingeladen.
+- **RLS bleibt aktiv** auf `hausuebungen` und `ergebnisse`. Update/Delete auf
+  `hausuebungen` nur für die besitzende Lehrperson (`erstellt_von`) bzw. Alt-Daten.
+- Schüler nur pseudonym (Klasse + Katalognummer 1–40), keine Namen speichern.
+- Reine Auswertungs-/Ausliefer-Logik liegt testbar in
+  `supabase/functions/generiere-hue/logik.ts` (ohne Deno-APIs).
 
-## Implementierter Stand (April 2026)
+## Tests & Checks (vor jedem Commit)
+- `npm run lint` und `npm run build` müssen grün sein
+- `npm test` – Deno-Tests der Logik (läuft ohne Supabase)
+- `npm run test:ui <hue-id>` – Puppeteer-Smoke-Test des Schüler-Flows
+  (braucht `npm run dev` und eine existierende HÜ-ID)
+- Nach größeren Etappen: `/code-review` als Review-Checkpoint
 
-### Lehrer-Flow (App.jsx + VorschauEditor)
-- Formular: Fach, Thema, Aufgabentyp (MC/Lückentext/Gemischt), Umfang (kurz/mittel/lang)
-- Edge Function `generiere-hue` erstellt HÜ via Anthropic tool_use und speichert sie in Supabase
-- `VorschauEditor`: Lehrer kann alle Felder bearbeiten; jede einzelne Aufgabe kann unabhängig
-  neu generiert werden (Button "↻ Neu generieren" pro MC-Frage und Lückentext)
-- Nach Speichern: Schüler-Link + QR-Code zum Teilen/Herunterladen
-- Fehlermeldung mit Retry-Hinweis bei fehlgeschlagener KI-Generierung
+## Konventionen
+- Feature-Branches (`feature/…`, `fix/…`, `design/…`), Merge in `main` mit `--no-ff`
+- Deutsche Commit-Messages, Co-Author-Trailer für Claude
+- Migrationen: neue Datei in `supabase/migrations/` (YYYYMMDD_name.sql), nie bestehende ändern
+- Edge Function deployen: `npx supabase functions deploy generiere-hue --project-ref phyxperjnduzbllgfrdb`
+  (Access-Token liegt im Windows Credential Manager unter `Supabase CLI:supabase`)
+- Fächerliste zentral in `src/lib/faecher.js`
 
-### Schüler-Flow (HuePage.jsx)
-- Schüler gibt Klasse (z. B. 2a) + Katalognummer (1–40) ein
-- Löst MC-Fragen und Lückentexte, Ergebnis wird in `ergebnisse` gespeichert
-- Auswertung direkt im Browser mit Prozent-Badge und Konfetti bei Perfektlösung
+## Was NICHT autonom passieren soll
+- Git Push zu GitHub (triggert Vercel-Produktions-Deploy)
+- `supabase db push` (Migrationen in Produktion)
+- Diese Schritte ankündigen und auf Bestätigung warten, auch im skip-permissions Modus.
 
-### Lehrer-Dashboard (Dashboard.jsx)
-- Tabelle aller Ergebnisse mit Filter nach Fach, Thema, Klasse, HÜ-ID
-- QR-Code-Modal pro HÜ
-- Klasse-Spalte zeigt die Klasse des Schülers
+## Stand Juli 2026
+Umgesetzt: vier Aufgabentypen (MC, Lückentext, Wahr/Falsch, Zuordnung), Fokus-Feld +
+Schwierigkeit, editierbare Vorschau mit Einzel-Neu-Generierung, serverseitige
+Auswertung ohne Lösungs-Leak, Dashboard mit Ergebnis-Filtern und HÜ-Verwaltung
+(Link/QR/Löschen, Deep-Link `/dashboard#uebungen`), 9 Fächer, Design-Migration
+Memphis-Collage Stufe 1–3 komplett, Security-Härtung (Login-Pflicht Generierung,
+kein Self-Signup, Besitz-RLS, Redirect-Allowlist).
 
-### Datenbank-Schema
-- Tabelle `hausuebungen`: id, fach, thema, aufgaben_json (text+fragen+lueckentexte), erstellt_am
-- Tabelle `ergebnisse`: id, fach, thema, schueler_nummer, schueler_klasse, richtige_antworten,
-  gesamt_fragen, prozent, hausuebung_id, erstellt_am
-- Migration `20260414120000_add_klasse_to_ergebnisse.sql` muss noch auf Supabase applied werden
-
-### Edge Function (`generiere-hue`)
-- Hauptmodus: vollständige HÜ generieren und in DB speichern
-- `einzelaufgabe: 'mc'|'lt'`: eine einzelne Aufgabe neu generieren, kein DB-Speichern
-
-## Nächste mögliche Aufgaben
-- Supabase Migration `20260414120000_add_klasse_to_ergebnisse.sql` deployen (`supabase db push`)
-- RLS-Policies aktivieren (siehe Technische Schulden)
-- Auth-Flow: Lehrperson-Login absichern (aktuell nur rudimentär via LoginPage)
-
-## Bekannte technische Schulden
-- **ANTHROPIC_API_KEY** liegt aktuell in lokaler `.env` (gitignored). Vor Produktiv-Einsatz:
-  rotieren und ausschließlich als Supabase Edge Function Secret setzen.
-  Reviewer sollen diesen Punkt NICHT als Blocker melden, solange das Setup unverändert ist –
-  es ist als Tech Debt akzeptiert. Sicherheitsbefunde zu NEUEN Themen (committeter Key,
-  Key im Frontend-Bundle, Key in Logs etc.) bleiben selbstverständlich Blocker.
-- **RLS** auf Tabellen `ergebnisse` und `hausuebungen` deaktiviert. Vor Produktiv-Einsatz:
-  Policies definieren (Lehrer darf nur eigene HÜs sehen/erstellen, Schüler nur Insert auf
-  `ergebnisse`).
+Offen (siehe auch Backlog in `aufgabolino-projektkontext.md`): Deploy-Abgleich
+main → GitHub/Vercel + `supabase db push` (wartet auf Bestätigung), Maskottchen,
+Domain aufgabolino.at, CSV-Export, Statistik pro Schüler.
