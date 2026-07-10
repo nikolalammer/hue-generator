@@ -15,6 +15,7 @@
 
   /* --- Akzent-Palette --- */
   --terracotta: #D2691E; /* Primäre Aktion, Markierung */
+  --terracotta-text: #A85413; /* Dunklere Variante für Text auf Weiß (WCAG AA) */
   --olive:      #556B2F; /* Richtig, Bestätigung */
   --plum:       #4A3444; /* Headlines, Kontrast */
   --rose:       #E8A5A5; /* Dekoratives Element */
@@ -209,6 +210,13 @@ a:hover {
   font-style: normal;
   margin-right: 6px;
   display: inline-block;
+  transition: transform 400ms cubic-bezier(.4, 0, .2, 1);
+}
+
+/* Stern dreht sich sanft beim Hover über die Wortmarke */
+h1:hover > .logo-stern,
+p:hover > .logo-stern {
+  transform: rotate(90deg);
 }
 
 /* Section-Label – wiederkehrendes Muster für Abschnitts-Überschriften */
@@ -351,9 +359,52 @@ a:hover {
 }
 
 /* ============================================================
-   prefers-reduced-motion
+   Micro-Details: Selection, Scrollbar, Tastatur-Fokus
+   ============================================================ */
+::selection {
+  background: var(--butter);
+  color: var(--plum);
+}
+
+/* Schmale Scrollbar in Cream/Terracotta (WebKit + Firefox) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(210, 105, 30, 0.5) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(210, 105, 30, 0.45);
+  border-radius: var(--r-full);
+  border: 2px solid var(--cream);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--terracotta);
+}
+
+/* Einheitlicher Tastatur-Fokus auf allen interaktiven Elementen */
+:focus-visible {
+  outline: 3px solid rgba(210, 105, 30, 0.5);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
+/* ============================================================
+   prefers-reduced-motion – global (Design-System Stufe 3)
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {
-  .spinner  { animation: none; }
-  .skeleton { animation: none; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

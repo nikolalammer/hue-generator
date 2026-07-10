@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { QRCodeCanvas } from 'qrcode.react'
 import supabase from './lib/supabaseClient'
 import { FAECHER, fachBadge } from './lib/faecher'
+import DekoFormen from './components/DekoFormen'
 import './Dashboard.css'
 
 // Prozent-Farbe: grün ab 75%, gelb ab 50%, rot darunter
@@ -157,6 +158,7 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-container">
+      <DekoFormen variante="dashboard" />
       <header className="dashboard-header">
         <div>
           <h1>Lehrer-Dashboard</h1>

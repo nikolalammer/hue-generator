@@ -27,6 +27,8 @@ async function overflowPruefen(schritt) {
     const max = document.documentElement.clientWidth
     const breit = []
     document.querySelectorAll('body *').forEach((el) => {
+      // Deko-Formen ragen absichtlich über den Rand – ihre Ebene clippt per overflow:hidden
+      if (el.closest('.deko-ebene')) return
       const r = el.getBoundingClientRect()
       if (r.right > max + 1 && r.width > 0) {
         breit.push(`${el.tagName}.${String(el.className).split(' ')[0]} right=${Math.round(r.right)}`)
